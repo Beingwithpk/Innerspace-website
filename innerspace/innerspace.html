@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Innerspace — Luxury Interior Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<!-- Elfsight loaded here, outside React/Babel -->
+<script src="https://elfsightcdn.com/platform.js" async></script>
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#C9A84C;--gold-light:#E8C96A;
+  --black:#080808;--black-mid:#101010;--black-card:#141414;--black-soft:#1a1a1a;
+  --white:#F5F0E8;--gray:rgba(245,240,232,0.58);
+  --rail:72px;--drawer:260px;
+  --ease:cubic-bezier(0.25,0.46,0.45,0.94);
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-serif;font-weight:300;overflow-x:hidden}
+
+/* ─── CURSOR ─── */
+.cur,.cur-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+.cur{width:8px;height:8px;background:var(--gold);transition:transform .1s}
+.cur-ring{width:32px;height:32px;border:1px solid var(--gold);opacity:.5;transition:width .3s,height .3s,opacity .3s,left .15s,top .15s}
+.cur-ring.big{width:56px;height:56px;opacity:.22}
+@media(hover:none){.cur,.cur-ring{display:none}body{cursor:auto}}
+
+/* ─── LAYOUT ─── */
+#app{display:flex;min-height:100vh}
+.main{flex:1;min-width:0;transition:margin-left .42s var(--ease)}
+.main.shifted{margin-left:var(--rail)}
+
+/* ─── SIDEBAR RAIL ─── */
+.rail{
+  position:fixed;left:0;top:0;bottom:0;
+  width:var(--rail);
+  background:var(--black-mid);
+  border-right:.5px solid rgba(201,168,76,.13);
+  z-index:500;
+  display:flex;flex-direction:column;align-items:center;
+  padding:1.4rem 0;
+  transition:width .42s var(--ease);
+}
+.rail.open{width:var(--drawer);align-items:flex-start}
+
+/* hamburger */
+.hbg{
+  width:40px;height:40px;background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  flex-shrink:0;margin-left:16px;margin-bottom:1.6rem;
+}
+.rail.open .hbg{margin-left:calc(var(--drawer) - var(--rail) - 4px)}
+.hbg span{display:block;height:1.5px;background:var(--gold);transition:all .3s}
+.hbg span:nth-child(1){width:22px}
+.hbg span:nth-child(2){width:15px}
+.hbg span:nth-child(3){width:22px}
+.hbg.on span:nth-child(1){transform:rotate(45deg) translate(4.5px,4.5px);width:22px}
+.hbg.on span:nth-child(2){opacity:0;width:0}
+.hbg.on span:nth-child(3){transform:rotate(-45deg) translate(4.5px,-4.5px);width:22px}
+
+/* logo inside rail */
+.rail-logo{
+  font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;
+  letter-spacing:.12em;color:var(--gold);white-space:nowrap;
+  padding:0 1.1rem;margin-bottom:1.8rem;
+  max-width:0;overflow:hidden;opacity:0;
+  transition:max-width .35s .1s,opacity .3s .15s;
+}
+.rail.open .rail-logo{max-width:200px;opacity:1}
+
+/* nav items */
+.rail-nav{display:flex;flex-direction:column;gap:.3rem;width:100%;padding:0 .7rem;flex:1}
+.nav-btn{
+  display:flex;align-items:center;gap:.9rem;
+  padding:.72rem .8rem;border-radius:4px;
+  background:none;border:none;cursor:pointer;
+  color:rgba(245,240,232,.48);
+  font-family:'Montserrat',sans-serif;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  white-space:nowrap;width:100%;
+  transition:background .25s,color .25s;
+}
+.nav-btn:hover{background:rgba(201,168,76,.07);color:var(--white)}
+.nav-btn.active{background:rgba(201,168,76,.12);color:var(--gold)}
+.nav-icon{flex-shrink:0;width:22px;text-align:center;font-size:1rem}
+.nav-lbl{opacity:0;transition:opacity .25s .12s;font-size:.6rem;letter-spacing:.18em}
+.rail.open .nav-lbl{opacity:1}
+
+/* vertical text when closed */
+.rail-tag{
+  writing-mode:vertical-rl;font-size:.48rem;letter-spacing:.28em;text-transform:uppercase;
+  color:rgba(201,168,76,.3);margin-top:auto;margin-bottom:1rem;
+  transition:opacity .2s;pointer-events:none;
+}
+.rail.open .rail-tag{opacity:0}
+
+/* social links bottom of rail */
+.rail-socials{display:flex;flex-direction:column;gap:.6rem;padding:.8rem .7rem}
+.rail-social{
+  width:32px;height:32px;border:.5px solid rgba(201,168,76,.2);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-family:'Cormorant Garamond',serif;
+  color:var(--gold);text-decoration:none;
+  transition:border-color .3s,background .3s;
+}
+.rail-social:hover{border-color:var(--gold);background:rgba(201,168,76,.1)}
+
+/* overlay behind open rail */
+.rail-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:499;
+}
+.rail-overlay.show{display:block}
+
+/* ─── MOBILE TOPBAR ─── */
+.topbar{
+  display:none;
+  position:fixed;left:0;right:0;top:0;height:54px;z-index:500;
+  background:rgba(8,8,8,.96);backdrop-filter:blur(10px);
+  border-bottom:.5px solid rgba(201,168,76,.14);
+  align-items:center;justify-content:space-between;padding:0 1.2rem;
+}
+.topbar-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);letter-spacing:.1em;cursor:pointer}
+.topbar-hbg{width:36px;height:36px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.topbar-hbg span{display:block;height:1.5px;background:var(--gold);transition:all .3s}
+.topbar-hbg span:nth-child(1){width:20px}
+.topbar-hbg span:nth-child(2){width:14px}
+.topbar-hbg span:nth-child(3){width:20px}
+.topbar-hbg.on span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
+.topbar-hbg.on span:nth-child(2){opacity:0}
+.topbar-hbg.on span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
+
+/* mobile drawer */
+.mob-drawer{
+  position:fixed;left:0;top:54px;bottom:0;width:var(--drawer);
+  background:var(--black-soft);border-right:.5px solid rgba(201,168,76,.14);
+  z-index:499;transform:translateX(-100%);
+  transition:transform .4s var(--ease);
+  display:flex;flex-direction:column;padding:1.5rem 1rem;gap:.35rem;
+}
+.mob-drawer.open{transform:translateX(0)}
+.mob-overlay{
+  position:fixed;inset:0;top:54px;background:rgba(0,0,0,.6);
+  z-index:498;opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.mob-overlay.show{opacity:1;pointer-events:auto}
+.mob-socials{display:flex;gap:.8rem;margin-top:auto;padding:.5rem 0}
+
+/* ─── RESPONSIVE SWITCH ─── */
+@media(max-width:768px){
+  .topbar{display:flex}
+  .rail{display:none}
+  .main.shifted{margin-left:0}
+  .main{padding-top:54px}
+}
+@media(min-width:769px){
+  .mob-drawer,.mob-overlay,.topbar{display:none !important}
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes up{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes growLine{0%,100%{opacity:.3;transform:scaleY(.6)}50%{opacity:1;transform:scaleY(1)}}
+@keyframes cube{0%{transform:rotateX(0) rotateY(0)}100%{transform:rotateX(360deg) rotateY(360deg)}}
+@keyframes wapulse{0%,100%{box-shadow:0 4px 18px rgba(37,211,102,.4)}50%{box-shadow:0 4px 26px rgba(37,211,102,.7),0 0 0 8px rgba(37,211,102,.08)}}
+@keyframes floatup{0%{opacity:0;transform:translateY(0) translateX(0)}10%{opacity:.32}90%{opacity:.07}100%{opacity:0;transform:translateY(-100vh) translateX(var(--drift))}}
+
+.page{animation:fadeSlide .42s ease}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .75s ease,transform .75s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* ─── HERO ─── */
+.hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45}
+.hero-ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,8,8,.3) 0%,rgba(8,8,8,.55) 55%,var(--black) 100%)}
+.hero-content{position:relative;z-index:2;text-align:center;padding:0 1.5rem}
+.h-tag{font-size:.58rem;letter-spacing:.45em;text-transform:uppercase;color:var(--gold);margin-bottom:1.3rem;animation:up .9s .4s both}
+.h-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,8vw,6.5rem);font-weight:300;line-height:1.05;margin-bottom:1.6rem;animation:up .9s .7s both}
+.h-title em{font-style:italic;color:var(--gold)}
+.h-sub{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);margin-bottom:2.5rem;animation:up .9s 1s both}
+.h-cta{display:inline-flex;align-items:center;gap:.8rem;border:1px solid var(--gold);padding:.85rem 2rem;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);cursor:pointer;background:none;transition:background .3s,color .3s;animation:up .9s 1.3s both;font-family:'Montserrat',sans-serif}
+.h-cta:hover{background:var(--gold);color:var(--black)}
+.h-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.4rem;font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(245,240,232,.32)}
+.h-scroll-line{width:1px;height:34px;background:linear-gradient(180deg,var(--gold),transparent);animation:growLine 1.6s infinite}
+@media(max-width:540px){.h-title{font-size:2.6rem}.h-sub{font-size:.58rem}}
+
+/* ─── MARQUEE ─── */
+.mq-wrap{overflow:hidden;border-top:.5px solid rgba(201,168,76,.14);border-bottom:.5px solid rgba(201,168,76,.14);padding:1rem 0;background:var(--black-mid)}
+.mq-track{display:flex;gap:3rem;animation:marquee 28s linear infinite;white-space:nowrap;width:max-content}
+.mq-item{font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(201,168,76,.62);display:flex;align-items:center;gap:.7rem}
+.mq-item::after{content:'◆';font-size:.32rem;color:var(--gold)}
+
+/* ─── SECTIONS ─── */
+.sec{padding:6rem 4rem}
+@media(max-width:768px){.sec{padding:4rem 1.5rem}}
+.sec-lbl{font-size:.56rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3.5vw,3rem);font-weight:300;line-height:1.2;margin-bottom:1.1rem}
+.sec-title em{font-style:italic;color:var(--gold)}
+
+/* ─── ABOUT ─── */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+@media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:3rem}}
+.about-p{font-size:.8rem;line-height:2;color:var(--gray);margin-bottom:1.1rem}
+.stats-g{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+.stat-c{border:.5px solid rgba(201,168,76,.14);padding:1.7rem;text-align:center;background:var(--black-card);position:relative;overflow:hidden;transition:border-color .3s}
+.stat-c::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.05),transparent);opacity:0;transition:opacity .3s}
+.stat-c:hover::before{opacity:1}
+.stat-c:hover{border-color:var(--gold)}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;color:var(--gold);line-height:1}
+.stat-l{font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,240,232,.42);margin-top:.4rem}
+
+/* ─── SERVICES ─── */
+.svc-bg{background:var(--black-mid)}
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:3rem}
+@media(max-width:880px){.svc-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.svc-grid{grid-template-columns:1fr}}
+.svc-card{border:.5px solid rgba(201,168,76,.11);padding:2rem;background:var(--black-card);cursor:pointer;transition:transform .4s var(--ease),border-color .3s;position:relative;overflow:hidden}
+.svc-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width .4s}
+.svc-card:hover{transform:translateY(-5px);border-color:rgba(201,168,76,.45)}
+.svc-card:hover::after{width:100%}
+.svc-icon{font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:rgba(201,168,76,.17);margin-bottom:1.1rem;line-height:1}
+.svc-name{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.7rem}
+.svc-desc{font-size:.72rem;line-height:1.8;color:var(--gray)}
+
+/* ─── VIDEO SHOWCASE ─── */
+.vid-showcase{display:grid;grid-template-columns:1fr 1fr;height:60vh}
+@media(max-width:640px){.vid-showcase{grid-template-columns:1fr;height:50vw}}
+.vid-panel{position:relative;overflow:hidden;cursor:pointer}
+.vid-panel video{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.vid-panel:hover video{transform:scale(1.05)}
+.vid-ov{position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,8,8,.8) 0%,rgba(8,8,8,.06) 55%);display:flex;flex-direction:column;justify-content:flex-end;padding:2rem}
+.vid-lbl{font-size:.52rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
+.vid-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:300}
+
+/* ─── PROJECTS ─── */
+.proj-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:1.1rem;margin-top:3rem}
+@media(max-width:880px){.proj-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.proj-grid{grid-template-columns:1fr}}
+.p-large{grid-column:span 7}
+.p-medium{grid-column:span 5}
+.p-small{grid-column:span 4}
+@media(max-width:880px){.p-large,.p-medium,.p-small{grid-column:span 1}}
+.proj-card{border:.5px solid rgba(201,168,76,.1);overflow:hidden;cursor:pointer;transition:border-color .3s;position:relative;background:var(--black-card)}
+.proj-card:hover{border-color:rgba(201,168,76,.5)}
+.proj-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:4.5rem;color:rgba(201,168,76,.1);transition:transform .7s var(--ease),color .3s}
+.p-large .proj-img{aspect-ratio:16/10}
+.proj-card:hover .proj-img{transform:scale(1.06);color:rgba(201,168,76,.22)}
+.proj-info{padding:1.1rem;background:var(--black-card)}
+.proj-type{font-size:.5rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
+.proj-name{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:300}
+.proj-line{position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--gold);transition:width .4s}
+.proj-card:hover .proj-line{width:100%}
+
+/* ─── 3D CUBE ─── */
+.cube-sec{background:var(--black-mid);display:flex;align-items:center;gap:5rem;padding:6rem 4rem}
+@media(max-width:768px){.cube-sec{flex-direction:column;gap:2.5rem;padding:4rem 1.5rem}}
+.cube-wrap{flex-shrink:0;width:210px;height:210px;perspective:680px;cursor:pointer}
+.cube-inner{width:100%;height:100%;transform-style:preserve-3d;animation:cube 14s linear infinite}
+.c-face{position:absolute;inset:0;border:1px solid rgba(201,168,76,.27);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:300;letter-spacing:.08em;background:rgba(8,8,8,.82);color:var(--gold)}
+.f-fr{transform:translateZ(105px)}
+.f-bk{transform:rotateY(180deg) translateZ(105px)}
+.f-rt{transform:rotateY(90deg) translateZ(105px)}
+.f-lt{transform:rotateY(-90deg) translateZ(105px)}
+.f-tp{transform:rotateX(90deg) translateZ(105px)}
+.f-bt{transform:rotateX(-90deg) translateZ(105px)}
+
+/* ─── CTA ─── */
+.cta-sec{text-align:center;position:relative;overflow:hidden;padding:6rem 4rem}
+.cta-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.07),transparent 70%)}
+.cta-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4.5vw,4.2rem);font-weight:300;margin-bottom:1.6rem;position:relative}
+.cta-title em{font-style:italic;color:var(--gold)}
+.cta-sub{font-size:.72rem;color:var(--gray);margin-bottom:2rem;letter-spacing:.1em}
+.btn-row{display:flex;gap:1.1rem;justify-content:center;flex-wrap:wrap}
+
+/* ─── BUTTONS ─── */
+.btn-gold{display:inline-flex;align-items:center;gap:.6rem;background:var(--gold);color:var(--black);padding:.85rem 2.2rem;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;font-weight:500;cursor:pointer;border:none;transition:background .3s,transform .2s;font-family:'Montserrat',sans-serif}
+.btn-gold:hover{background:var(--gold-light);transform:translateY(-2px)}
+.btn-outline{display:inline-flex;align-items:center;gap:.6rem;border:1px solid var(--gold);color:var(--gold);padding:.85rem 2.2rem;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;background:none;transition:background .3s,color .3s,transform .2s;font-family:'Montserrat',sans-serif;font-weight:300;text-decoration:none}
+.btn-outline:hover{background:var(--gold);color:var(--black);transform:translateY(-2px)}
+
+/* ─── INSTAGRAM ─── */
+.ig-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.8rem;flex-wrap:wrap;gap:1rem}
+.ig-handle{display:flex;align-items:center;gap:.8rem;text-decoration:none}
+.ig-icon-wrap{width:38px;height:38px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border-radius:9px;display:flex;align-items:center;justify-content:center}
+.ig-icon-wrap svg{width:20px;height:20px;fill:white}
+.ig-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--white)}
+.ig-sub{font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,240,232,.35)}
+.ig-live{display:flex;align-items:center;gap:.5rem;font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(245,240,232,.28);margin-bottom:.9rem}
+.ig-dot{width:6px;height:6px;border-radius:50%;background:#bc1888;animation:igp 2s infinite}
+@keyframes igp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+.elfsight-wrapper{width:100%;min-height:280px;background:transparent}
+.elfsight-app-2bc21478-cc0e-4219-affd-fd162c6bbfc2{min-height:280px;display:block;background:transparent}
+
+/* ─── CATALOGUE ─── */
+.cat-filters{display:flex;gap:.5rem;flex-wrap:wrap;padding:2.5rem 4rem 0}
+@media(max-width:768px){.cat-filters{padding:2rem 1.5rem 0}}
+.flt-btn{padding:.42rem 1.25rem;border:.5px solid rgba(201,168,76,.24);background:none;color:rgba(245,240,232,.52);font-family:'Montserrat',sans-serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:all .3s}
+.flt-btn:hover,.flt-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.06)}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;padding:1.8rem 4rem 4rem}
+@media(max-width:1080px){.cat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cat-grid{grid-template-columns:1fr;padding:1.5rem 1.5rem 3rem}}
+.cat-card{background:var(--black-card);border:.5px solid rgba(201,168,76,.1);overflow:hidden;cursor:pointer;transition:transform .4s var(--ease),border-color .3s;position:relative}
+.cat-card:hover{transform:translateY(-7px);border-color:rgba(201,168,76,.5)}
+.cat-thumb{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:4.5rem;color:rgba(201,168,76,.12);background:var(--black-soft);transition:color .3s;overflow:hidden;position:relative}
+.cat-card:hover .cat-thumb{color:rgba(201,168,76,.28)}
+.cat-vid-wrap{width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;background:var(--black-soft)}
+.cat-vid-wrap video{width:100%;height:100%;object-fit:cover;display:block;transition:transform .7s var(--ease)}
+.cat-card:hover .cat-vid-wrap video{transform:scale(1.04)}
+.cat-vid-ov{position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,8,8,.7) 0%,rgba(8,8,8,.08) 55%);display:flex;align-items:center;justify-content:center;transition:background .3s}
+.cat-card:hover .cat-vid-ov{background:linear-gradient(0deg,rgba(8,8,8,.5) 0%,rgba(8,8,8,.03) 55%)}
+.play-btn{width:48px;height:48px;border:1.5px solid rgba(201,168,76,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .3s,transform .3s,border-color .3s;cursor:pointer;background:none}
+.play-btn svg{fill:var(--gold);width:16px;height:16px;margin-left:3px}
+.cat-card:hover .play-btn{background:rgba(201,168,76,.15);border-color:var(--gold);transform:scale(1.1)}
+.cat-badge{position:absolute;top:.75rem;right:.75rem;background:var(--gold);color:var(--black);font-size:.46rem;letter-spacing:.2em;text-transform:uppercase;padding:.22rem .65rem;font-weight:500}
+.cat-body{padding:1.2rem}
+.cat-cat{font-size:.5rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
+.cat-name{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:300;margin-bottom:.4rem}
+.cat-desc{font-size:.68rem;line-height:1.75;color:var(--gray);margin-bottom:.85rem}
+.cat-foot{display:flex;align-items:center;justify-content:space-between;border-top:.5px solid rgba(201,168,76,.1);padding-top:.85rem}
+.cat-price{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--gold)}
+.cat-cta-btn{font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(245,240,232,.42);background:none;border:none;cursor:pointer;font-family:'Montserrat',sans-serif;transition:color .3s}
+.cat-card:hover .cat-cta-btn{color:var(--gold)}
+.vid-bar{font-size:.52rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);border-bottom:.5px solid rgba(201,168,76,.14);padding-bottom:.7rem;margin-bottom:.4rem}
+
+/* ─── CONTACT ─── */
+.page-hdr{padding:7rem 4rem 3.5rem;background:var(--black-mid);border-bottom:.5px solid rgba(201,168,76,.14);text-align:center;position:relative;overflow:hidden}
+.page-hdr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.05),transparent 70%)}
+.page-hdr .sec-lbl,.page-hdr h1{position:relative;z-index:1}
+.page-hdr h1{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,3.2rem);font-weight:300}
+.page-hdr h1 em{font-style:italic;color:var(--gold)}
+@media(max-width:768px){.page-hdr{padding:5rem 1.5rem 2.5rem}}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;padding:5rem 4rem}
+@media(max-width:880px){.contact-grid{grid-template-columns:1fr;gap:3rem;padding:3rem 1.5rem}}
+.c-form{display:flex;flex-direction:column;gap:1.2rem}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:460px){.f-row{grid-template-columns:1fr}}
+.f-grp{display:flex;flex-direction:column;gap:.38rem}
+.f-lbl{font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,240,232,.42)}
+.f-in,.f-sel,.f-ta{background:var(--black-card);border:.5px solid rgba(201,168,76,.17);color:var(--white);padding:.82rem 1rem;font-family:'Montserrat',sans-serif;font-size:.76rem;font-weight:300;outline:none;transition:border-color .3s;appearance:none;width:100%}
+.f-in:focus,.f-sel:focus,.f-ta:focus{border-color:var(--gold)}
+.f-ta{resize:vertical;min-height:105px}
+.f-sel option{background:var(--black-card)}
+.info-title{font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:.85rem}
+.info-text{font-size:.8rem;line-height:2;color:var(--gray)}
+.info-link{color:var(--gold);text-decoration:none}
+.info-link:hover{opacity:.7}
+.map-box{width:100%;height:190px;background:var(--black-card);border:.5px solid rgba(201,168,76,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;color:rgba(201,168,76,.32);font-family:'Cormorant Garamond',serif;font-size:1.3rem}
+.map-sub{font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase}
+
+/* ─── FOOTER ─── */
+footer{background:var(--black-mid);border-top:.5px solid rgba(201,168,76,.16);padding:3.5rem 4rem}
+@media(max-width:768px){footer{padding:3rem 1.5rem}}
+.ft-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2.5rem}
+@media(max-width:880px){.ft-top{grid-template-columns:1fr 1fr;gap:2rem}}
+@media(max-width:520px){.ft-top{grid-template-columns:1fr}}
+.ft-logo{font-family:'Cormorant Garamond',serif;font-size:1.75rem;color:var(--gold);margin-bottom:.7rem;letter-spacing:.1em}
+.ft-tag{font-size:.7rem;line-height:1.85;color:var(--gray);max-width:230px}
+.ft-col-title{font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1.1rem}
+.ft-links{display:flex;flex-direction:column;gap:.65rem}
+.ft-link{font-size:.7rem;color:var(--gray);cursor:pointer;text-decoration:none;transition:color .3s;background:none;border:none;font-family:'Montserrat',sans-serif;text-align:left}
+.ft-link:hover{color:var(--gold)}
+.ft-bottom{border-top:.5px solid rgba(201,168,76,.1);padding-top:1.7rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.ft-copy{font-size:.6rem;color:rgba(245,240,232,.26)}
+.ft-socials{display:flex;gap:.9rem}
+.ft-social{width:33px;height:33px;border:.5px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.58rem;font-family:'Cormorant Garamond',serif;text-decoration:none;transition:border-color .3s,background .3s}
+.ft-social:hover{border-color:var(--gold);background:rgba(201,168,76,.1)}
+
+/* ─── WHATSAPP FAB ─── */
+.wa-fab{position:fixed;bottom:1.8rem;right:1.8rem;z-index:600;width:54px;height:54px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:wapulse 2.5s infinite;text-decoration:none;transition:transform .3s}
+.wa-fab:hover{transform:scale(1.12);animation:none;box-shadow:0 6px 26px rgba(37,211,102,.6)}
+.wa-fab svg{width:27px;height:27px;fill:white}
+
+/* ─── PARTICLES ─── */
+.ptcl{position:fixed;width:2px;height:2px;background:var(--gold);border-radius:50%;opacity:0;pointer-events:none;animation:floatup var(--dur) var(--delay) infinite linear;z-index:0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ── CONSTANTS ── */
+const WA = 'https://wa.me/919306109466?text=Hi%20Innerspace!%20I%27m%20interested%20in%20your%20interior%20design%20services.%20Can%20you%20please%20share%20more%20details%3F';
+
+const SERVICES = [
+  {icon:'⬡', name:'Modular Kitchens', desc:'Precision-engineered kitchen systems that blend aesthetics with functionality.'},
+  {icon:'▭', name:'Wardrobes', desc:'Custom wardrobe solutions with intelligent storage and elegant finishes.'},
+  {icon:'◫', name:'Vanities', desc:'Bespoke bathroom vanities that transform your daily ritual into luxury.'},
+  {icon:'▢', name:'TV Units', desc:'Statement entertainment units crafted to anchor your living space with grandeur.'},
+  {icon:'⟦', name:'Glass Partitions', desc:'Architectural glass solutions that create openness while defining distinct zones.'},
+  {icon:'⬜', name:'Doors and Doorcases', desc:'Artisan-crafted doors and frames — the first impression of your home.'},
+];
+
+const PROJECTS = [
+  {cls:'p-large',  icon:'⬡', bg:'linear-gradient(135deg,#1a1400,#0a0a0a)', type:'Modular Kitchen', name:'Arjun Residence — Mumbai'},
+  {cls:'p-medium', icon:'▭', bg:'linear-gradient(135deg,#0a1200,#0a0a0a)', type:'Walk-in Wardrobe', name:'Patel Villa — Ahmedabad'},
+  {cls:'p-small',  icon:'◫', bg:'linear-gradient(135deg,#0a0012,#0a0a0a)', type:'Vanity Suite',    name:'Sharma Penthouse'},
+  {cls:'p-small',  icon:'▢', bg:'linear-gradient(135deg,#120800,#0a0a0a)', type:'TV Unit',         name:'Mehta Residence'},
+  {cls:'p-medium', icon:'⟦', bg:'linear-gradient(135deg,#001212,#0a0a0a)', type:'Glass Partition', name:'Kapoor Office — Delhi'},
+];
+
+const CATALOGUE = [
+  {cat:'kitchen', icon:'⬡', bg:'linear-gradient(135deg,#1a1400,#0a0a0a)', badge:'Bestseller', cat_lbl:'Modular Kitchen', name:'Aurum Series', desc:'Sleek handle-less design with acrylic high-gloss shutters and quartz countertops.', price:'From ₹4.5L'},
+  {cat:'kitchen', icon:'⬡', bg:'linear-gradient(135deg,#12100a,#0a0a0a)', badge:null,          cat_lbl:'Modular Kitchen', name:'Obsidian Series', desc:'Bold matte black finishes with integrated appliances and under-cabinet lighting.', price:'From ₹5.8L'},
+  {cat:'kitchen', icon:'⬡', bg:'linear-gradient(135deg,#0a1200,#0a0a0a)', badge:'New',         cat_lbl:'Modular Kitchen', name:'Ivory Classic', desc:'Timeless shaker-style cabinetry in warm ivory tones with granite tops.', price:'From ₹3.8L'},
+  {cat:'wardrobe',icon:'▭', bg:'linear-gradient(135deg,#0a0012,#0a0a0a)', badge:'Bestseller', cat_lbl:'Wardrobe',        name:'Luxe Walk-in', desc:'Floor-to-ceiling mirrored walk-in wardrobes with LED lighting and velvet drawers.', price:'From ₹2.2L'},
+  {cat:'wardrobe',icon:'▭', bg:'linear-gradient(135deg,#100a12,#0a0a0a)', badge:null,          cat_lbl:'Wardrobe',        name:'Sliding Panel', desc:'Space-saving sliding door wardrobes with full-height glass or laminate panels.', price:'From ₹85,000'},
+  {cat:'vanity',  icon:'◫', bg:'linear-gradient(135deg,#120800,#0a0a0a)', badge:null,          cat_lbl:'Vanity',          name:'Spa Retreat Vanity', desc:'Double-sink vanities with backlit mirrors and high-gloss lacquer finishes.', price:'From ₹95,000'},
+  {cat:'tvunit',  icon:'▢', bg:'linear-gradient(135deg,#0a1012,#0a0a0a)', badge:'New',         cat_lbl:'TV Unit',         name:'Panorama Unit', desc:'Full wall entertainment units with concealed wiring and integrated lighting.', price:'From ₹1.2L'},
+  {cat:'glass',   icon:'⟦', bg:'linear-gradient(135deg,#001212,#0a0a0a)', badge:null,          cat_lbl:'Glass Partition', name:'Frameless Dividers', desc:'10mm tempered glass partitions with minimal aluminium framing.', price:'From ₹650/sqft'},
+  {cat:'door',    icon:'⬜', bg:'linear-gradient(135deg,#100a0a,#0a0a0a)', badge:null,          cat_lbl:'Doors',           name:'Artisan Doors', desc:'Solid wood and engineered panel doors with custom profiles and precision frames.', price:'From ₹18,000'},
+];
+
+const NAV = [
+  {id:'home',      icon:'◈', label:'Home'},
+  {id:'catalogue', icon:'◰', label:'Catalogue'},
+  {id:'contact',   icon:'◇', label:'Contact'},
+];
+
+/* ── CURSOR ── */
+function Cursor() {
+  const curRef = useRef(null);
+  const ringRef = useRef(null);
+  useEffect(() => {
+    const onMove = e => {
+      if (curRef.current)  { curRef.current.style.left  = e.clientX + 'px'; curRef.current.style.top  = e.clientY + 'px'; }
+      if (ringRef.current) { ringRef.current.style.left = e.clientX + 'px'; ringRef.current.style.top = e.clientY + 'px'; }
+    };
+    document.addEventListener('mousemove', onMove);
+    return () => document.removeEventListener('mousemove', onMove);
+  }, []);
+  return (
+    React.createElement(React.Fragment, null,
+      React.createElement('div', { className:'cur', ref:curRef }),
+      React.createElement('div', { className:'cur-ring', ref:ringRef })
+    )
+  );
+}
+
+/* ── PARTICLES ── */
+function Particles() {
+  const items = Array.from({length:18}, (_,i) => ({
+    id:i,
+    left: Math.random()*100+'%',
+    dur:  (6+Math.random()*8)+'s',
+    delay:(Math.random()*8)+'s',
+    drift:((Math.random()-.5)*70)+'px',
+  }));
+  return React.createElement('div', {style:{position:'fixed',inset:0,pointerEvents:'none',zIndex:0,overflow:'hidden'}},
+    items.map(p => React.createElement('div', {
+      key:p.id, className:'ptcl',
+      style:{left:p.left, bottom:'-10px', '--dur':p.dur, '--delay':p.delay, '--drift':p.drift}
+    }))
+  );
+}
+
+/* ── REVEAL HOOK ── */
+function useReveal() {
+  useEffect(() => {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+    }, {threshold:0.1});
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  });
+}
+
+/* ── SIDEBAR (desktop) ── */
+function Sidebar({page, setPage, open, setOpen}) {
+  return React.createElement(React.Fragment, null,
+    React.createElement('div', {className: 'rail' + (open?' open':'')},
+      React.createElement('button', {
+        className:'hbg'+(open?' on':''), onClick:()=>setOpen(o=>!o), title:'Menu'
+      }, React.createElement('span'), React.createElement('span'), React.createElement('span')),
+      React.createElement('div', {className:'rail-logo'}, 'Inner', React.createElement('em', {style:{fontStyle:'italic'}}, 'space')),
+      React.createElement('nav', {className:'rail-nav'},
+        NAV.map(n => React.createElement('button', {
+          key:n.id, className:'nav-btn'+(page===n.id?' active':''),
+          onClick:()=>{setPage(n.id);setOpen(false);}
+        },
+          React.createElement('span', {className:'nav-icon'}, n.icon),
+          React.createElement('span', {className:'nav-lbl'}, n.label)
+        ))
+      ),
+      React.createElement('div', {className:'rail-tag'}, 'Innerspace'),
+      React.createElement('div', {className:'rail-socials'},
+        React.createElement('a', {className:'rail-social', href:'https://www.instagram.com/kitchen.modular', target:'_blank', rel:'noreferrer'}, 'IG'),
+        React.createElement('a', {className:'rail-social', href:WA, target:'_blank', rel:'noreferrer'}, 'WA')
+      )
+    ),
+    open && React.createElement('div', {className:'rail-overlay show', onClick:()=>setOpen(false)})
+  );
+}
+
+/* ── MOBILE TOPBAR ── */
+function MobileTopbar({page, setPage, open, setOpen}) {
+  return React.createElement(React.Fragment, null,
+    React.createElement('div', {className:'topbar', style:{display:'flex'}},
+      React.createElement('div', {className:'topbar-logo', onClick:()=>setPage('home')},
+        'Inner', React.createElement('em', {style:{fontStyle:'italic'}}, 'space')
+      ),
+      React.createElement('button', {className:'topbar-hbg'+(open?' on':''), onClick:()=>setOpen(o=>!o)},
+        React.createElement('span'), React.createElement('span'), React.createElement('span')
+      )
+    ),
+    React.createElement('div', {className:'mob-drawer'+(open?' open':'')},
+      NAV.map(n => React.createElement('button', {
+        key:n.id, className:'nav-btn'+(page===n.id?' active':''),
+        onClick:()=>{setPage(n.id);setOpen(false);}
+      },
+        React.createElement('span', {className:'nav-icon'}, n.icon),
+        React.createElement('span', {className:'nav-lbl'}, n.label)
+      )),
+      React.createElement('div', {className:'mob-socials'},
+        React.createElement('a', {className:'rail-social', href:'https://www.instagram.com/kitchen.modular', target:'_blank', rel:'noreferrer'}, 'IG'),
+        React.createElement('a', {className:'rail-social', href:WA, target:'_blank', rel:'noreferrer'}, 'WA')
+      )
+    ),
+    React.createElement('div', {className:'mob-overlay'+(open?' show':''), onClick:()=>setOpen(false)})
+  );
+}
+
+/* ── FOOTER ── */
+function Footer({setPage}) {
+  return React.createElement('footer', null,
+    React.createElement('div', {className:'ft-top'},
+      React.createElement('div', null,
+        React.createElement('div', {className:'ft-logo'}, 'Inner', React.createElement('em',{style:{fontStyle:'italic'}},'space')),
+        React.createElement('p', {className:'ft-tag'}, 'Luxury interior design and modular furniture studio. Creating spaces that inspire, function, and endure.')
+      ),
+      React.createElement('div', null,
+        React.createElement('div', {className:'ft-col-title'}, 'Services'),
+        React.createElement('div', {className:'ft-links'},
+          ['Modular Kitchens','Wardrobes','Vanities','TV Units','Glass Partitions','Doors'].map(s =>
+            React.createElement('span', {key:s, className:'ft-link'}, s)
+          )
+        )
+      ),
+      React.createElement('div', null,
+        React.createElement('div', {className:'ft-col-title'}, 'Navigate'),
+        React.createElement('div', {className:'ft-links'},
+          NAV.map(n => React.createElement('button', {key:n.id, className:'ft-link', onClick:()=>setPage(n.id)}, n.label))
+        )
+      ),
+      React.createElement('div', null,
+        React.createElement('div', {className:'ft-col-title'}, 'Contact'),
+        React.createElement('div', {className:'ft-links'},
+          React.createElement('span', {className:'ft-link'}, '+91 93061 09466'),
+          React.createElement('a', {className:'ft-link', href:'mailto:hello@innerspace.in'}, 'hello@innerspace.in'),
+          React.createElement('span', {className:'ft-link'}, 'Mumbai, India')
+        )
+      )
+    ),
+    React.createElement('div', {className:'ft-bottom'},
+      React.createElement('div', {className:'ft-copy'}, '© 2025 Innerspace. All rights reserved.'),
+      React.createElement('div', {className:'ft-socials'},
+        React.createElement('a', {className:'ft-social', href:'https://www.instagram.com/kitchen.modular', target:'_blank', rel:'noreferrer'}, 'IG'),
+        React.createElement('a', {className:'ft-social', href:WA, target:'_blank', rel:'noreferrer'}, 'WA')
+      )
+    )
+  );
+}
+
+/* ── HOME ── */
+function Home({setPage}) {
+  useReveal();
+  const v1 = useRef(null), v2 = useRef(null);
+  return React.createElement('div', {className:'page'},
+    /* HERO */
+    React.createElement('section', {className:'hero', style:{padding:0}},
+      React.createElement('video', {autoPlay:true, muted:true, loop:true, playsInline:true, style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:.45}},
+        React.createElement('source', {src:'kitchen1.mp4', type:'video/mp4'})
+      ),
+      React.createElement('div', {className:'hero-ov'}),
+      React.createElement('div', {className:'hero-content'},
+        React.createElement('div', {className:'h-tag'}, 'Luxury Interior Design Studio'),
+        React.createElement('h1', {className:'h-title'}, 'Where Space', React.createElement('br'), 'Becomes ', React.createElement('em', null, 'Art')),
+        React.createElement('p', {className:'h-sub'}, 'Modular Kitchens · Wardrobes · Custom Interiors · Glass Partitions'),
+        React.createElement('button', {className:'h-cta', onClick:()=>setPage('catalogue')}, 'Explore Our Work →')
+      ),
+      React.createElement('div', {className:'h-scroll'},
+        React.createElement('div', {className:'h-scroll-line'}),
+        'Scroll'
+      )
+    ),
+    /* MARQUEE */
+    React.createElement('div', {className:'mq-wrap'},
+      React.createElement('div', {className:'mq-track'},
+        ['Modular Kitchens','Luxury Wardrobes','Vanities','TV Units','Glass Partitions','Custom Doors','Door Frames','Interior Design',
+         'Modular Kitchens','Luxury Wardrobes','Vanities','TV Units','Glass Partitions','Custom Doors','Door Frames','Interior Design'].map((t,i) =>
+          React.createElement('span', {key:i, className:'mq-item'}, t)
+        )
+      )
+    ),
+    /* ABOUT */
+    React.createElement('section', {className:'sec'},
+      React.createElement('div', {className:'about-grid'},
+        React.createElement('div', null,
+          React.createElement('div', {className:'sec-lbl reveal'}, 'About Innerspace'),
+          React.createElement('h2', {className:'sec-title reveal'}, 'Crafting Spaces That ', React.createElement('br'), React.createElement('em', null, 'Inspire')),
+          React.createElement('p', {className:'about-p reveal'}, 'Innerspace is a premier interior design and modular furniture studio dedicated to transforming living spaces into expressions of refined luxury. From concept to completion, every project is executed with precision and artistry.'),
+          React.createElement('p', {className:'about-p reveal'}, 'Our team of skilled designers and craftsmen work with the finest materials to bring your vision to life — whether it is a sleek modular kitchen, a bespoke wardrobe, or a complete home transformation.'),
+          React.createElement('div', {className:'reveal', style:{marginTop:'1.8rem'}},
+            React.createElement('button', {className:'btn-outline', onClick:()=>setPage('contact')}, 'Begin Your Project →')
+          )
+        ),
+        React.createElement('div', {className:'stats-g reveal'},
+          [['500+','Projects Completed'],['10+','Years Experience'],['50+','Design Experts'],['98%','Client Satisfaction']].map(([n,l]) =>
+            React.createElement('div', {key:l, className:'stat-c'},
+              React.createElement('div', {className:'stat-n'}, n),
+              React.createElement('div', {className:'stat-l'}, l)
+            )
+          )
+        )
+      )
+    ),
+    /* SERVICES */
+    React.createElement('section', {className:'sec svc-bg'},
+      React.createElement('div', {className:'sec-lbl reveal'}, 'What We Do'),
+      React.createElement('h2', {className:'sec-title reveal'}, 'Our ', React.createElement('em', null, 'Services')),
+      React.createElement('div', {className:'svc-grid'},
+        SERVICES.map((s,i) =>
+          React.createElement('div', {key:s.name, className:'svc-card reveal', style:{transitionDelay:i*0.08+'s'}},
+            React.createElement('div', {className:'svc-icon'}, s.icon),
+            React.createElement('div', {className:'svc-name'}, s.name),
+            React.createElement('div', {className:'svc-desc'}, s.desc)
+          )
+        )
+      )
+    ),
+    /* VIDEO SHOWCASE */
+    React.createElement('div', {className:'vid-showcase'},
+      React.createElement('div', {className:'vid-panel'},
+        React.createElement('video', {ref:v1, autoPlay:true, muted:true, loop:true, playsInline:true, style:{width:'100%',height:'100%',objectFit:'cover'}},
+          React.createElement('source', {src:'kitchen1.mp4', type:'video/mp4'})
+        ),
+        React.createElement('div', {className:'vid-ov'},
+          React.createElement('div', {className:'vid-lbl'}, 'Featured Work'),
+          React.createElement('div', {className:'vid-title'}, 'Contemporary Kitchen Design')
+        )
+      ),
+      React.createElement('div', {className:'vid-panel'},
+        React.createElement('video', {ref:v2, autoPlay:true, muted:true, loop:true, playsInline:true, style:{width:'100%',height:'100%',objectFit:'cover'}},
+          React.createElement('source', {src:'kitchen2.mp4', type:'video/mp4'})
+        ),
+        React.createElement('div', {className:'vid-ov'},
+          React.createElement('div', {className:'vid-lbl'}, '3D Render'),
+          React.createElement('div', {className:'vid-title'}, 'Modular Kitchen Concept')
+        )
+      )
+    ),
+    /* PROJECTS */
+    React.createElement('section', {className:'sec'},
+      React.createElement('div', {className:'sec-lbl reveal'}, 'Selected Projects'),
+      React.createElement('h2', {className:'sec-title reveal'}, 'Our ', React.createElement('em', null, 'Portfolio')),
+      React.createElement('div', {className:'proj-grid'},
+        PROJECTS.map((p,i) =>
+          React.createElement('div', {key:p.name, className:'proj-card '+p.cls+' reveal', style:{transitionDelay:i*0.09+'s'}},
+            React.createElement('div', {className:'proj-img', style:{background:p.bg}}, p.icon),
+            React.createElement('div', {className:'proj-info'},
+              React.createElement('div', {className:'proj-type'}, p.type),
+              React.createElement('div', {className:'proj-name'}, p.name)
+            ),
+            React.createElement('div', {className:'proj-line'})
+          )
+        )
+      ),
+      React.createElement('div', {style:{textAlign:'center',marginTop:'2.5rem'}, className:'reveal'},
+        React.createElement('button', {className:'btn-outline', onClick:()=>setPage('catalogue')}, 'View Full Catalogue →')
+      )
+    ),
+    /* 3D CUBE */
+    React.createElement('div', {className:'cube-sec'},
+      React.createElement('div', {className:'cube-wrap'},
+        React.createElement('div', {className:'cube-inner'},
+          [['f-fr','Kitchen'],['f-bk','Wardrobe'],['f-rt','Vanity'],['f-lt','Doors'],['f-tp','Glass'],['f-bt','Units']].map(([cls,lbl]) =>
+            React.createElement('div', {key:cls, className:'c-face '+cls}, lbl)
+          )
+        )
+      ),
+      React.createElement('div', null,
+        React.createElement('div', {className:'sec-lbl reveal'}, 'Design Process'),
+        React.createElement('h2', {className:'sec-title reveal'}, 'Every Detail ', React.createElement('br'), React.createElement('em', null, 'Considered')),
+        React.createElement('p', {className:'about-p reveal', style:{maxWidth:'400px'}}, 'From initial consultation to final installation, Innerspace ensures a seamless premium experience with advanced 3D rendering and planning tools.'),
+        React.createElement('div', {className:'reveal', style:{marginTop:'1.5rem'}},
+          React.createElement('button', {className:'btn-gold', onClick:()=>setPage('contact')}, 'Book a Consultation')
+        )
+      )
+    ),
+    /* INSTAGRAM */
+    React.createElement('section', {className:'sec'},
+      React.createElement('div', {className:'ig-header'},
+        React.createElement('div', null,
+          React.createElement('div', {className:'sec-lbl'}, 'Follow Our Work'),
+          React.createElement('a', {className:'ig-handle', href:'https://www.instagram.com/kitchen.modular', target:'_blank', rel:'noreferrer'},
+            React.createElement('div', {className:'ig-icon-wrap'},
+              React.createElement('svg', {viewBox:'0 0 24 24'},
+                React.createElement('path', {d:'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z'})
+              )
+            ),
+            React.createElement('div', null,
+              React.createElement('div', {className:'ig-name'}, '@kitchen.modular'),
+              React.createElement('div', {className:'ig-sub'}, 'Follow on Instagram')
+            )
+          )
+        ),
+        React.createElement('a', {className:'btn-outline', href:'https://www.instagram.com/kitchen.modular', target:'_blank', rel:'noreferrer', style:{height:'fit-content'}}, 'Follow ↗')
+      ),
+      React.createElement('div', {className:'ig-live'},
+        React.createElement('div', {className:'ig-dot'}),
+        'Live from Instagram'
+      ),
+      React.createElement('div', {className:'elfsight-wrapper'},
+        React.createElement('div', {className:'elfsight-app-2bc21478-cc0e-4219-affd-fd162c6bbfc2', 'data-elfsight-app-lazy':true})
+      ),
+      React.createElement('div', {style:{textAlign:'center',marginTop:'2rem'}},
+        React.createElement('a', {className:'btn-outline', href:'https://www.instagram.com/kitchen.modular', target:'_blank', rel:'noreferrer'}, 'View All Posts on Instagram ↗')
+      )
+    ),
+    /* CTA */
+    React.createElement('section', {className:'cta-sec'},
+      React.createElement('div', {className:'sec-lbl reveal'}, 'Ready to Begin?'),
+      React.createElement('h2', {className:'cta-title reveal'}, 'Transform Your ', React.createElement('em', null, 'Space')),
+      React.createElement('p', {className:'cta-sub reveal'}, "Let's create something extraordinary together."),
+      React.createElement('div', {className:'btn-row reveal'},
+        React.createElement('button', {className:'btn-gold', onClick:()=>setPage('contact')}, 'Get In Touch'),
+        React.createElement('button', {className:'btn-outline', onClick:()=>setPage('catalogue')}, 'View Catalogue')
+      )
+    ),
+    React.createElement(Footer, {setPage})
+  );
+}
+
+/* ── CATALOGUE ── */
+function Catalogue({setPage}) {
+  useReveal();
+  const [filter, setFilter] = useState('all');
+  const v1 = useRef(null), v2 = useRef(null);
+  const FILTERS = [
+    {id:'all',label:'All'},{id:'kitchen',label:'Kitchens'},{id:'wardrobe',label:'Wardrobes'},
+    {id:'vanity',label:'Vanities'},{id:'tvunit',label:'TV Units'},{id:'glass',label:'Glass'},{id:'door',label:'Doors'}
+  ];
+  const shown = filter==='all' ? CATALOGUE : CATALOGUE.filter(c=>c.cat===filter);
+  const showVids = filter==='all' || filter==='kitchen';
+
+  return React.createElement('div', {className:'page'},
+    React.createElement('div', {className:'page-hdr'},
+      React.createElement('div', {className:'sec-lbl'}, 'Browse Our Range'),
+      React.createElement('h1', null, 'Our ', React.createElement('em', null, 'Catalogue'))
+    ),
+    React.createElement('div', {className:'cat-filters'},
+      FILTERS.map(f => React.createElement('button', {key:f.id, className:'flt-btn'+(filter===f.id?' on':''), onClick:()=>setFilter(f.id)}, f.label))
+    ),
+    React.createElement('div', {className:'cat-grid'},
+      showVids && React.createElement(React.Fragment, {key:'vids'},
+        React.createElement('div', {style:{gridColumn:'1/-1'}, className:'vid-bar'}, '◆   3D Kitchen Renders — Watch Our Designs Come to Life'),
+        /* Video card 1 */
+        React.createElement('div', {
+          className:'cat-card',
+          onMouseEnter:()=>{if(v1.current){v1.current.play();}},
+          onMouseLeave:()=>{if(v1.current){v1.current.pause();}}
+        },
+          React.createElement('div', {className:'cat-vid-wrap'},
+            React.createElement('video', {ref:v1, muted:true, loop:true, playsInline:true, preload:'metadata'},
+              React.createElement('source', {src:'kitchen1.mp4', type:'video/mp4'})
+            ),
+            React.createElement('div', {className:'cat-vid-ov'},
+              React.createElement('button', {className:'play-btn', onClick:()=>{if(v1.current){v1.current.paused?v1.current.play():v1.current.pause();}}},
+                React.createElement('svg', {viewBox:'0 0 24 24'}, React.createElement('path', {d:'M8 5v14l11-7z'}))
+              )
+            ),
+            React.createElement('div', {className:'cat-badge'}, '3D Render')
+          ),
+          React.createElement('div', {className:'cat-body'},
+            React.createElement('div', {className:'cat-cat'}, 'Modular Kitchen'),
+            React.createElement('div', {className:'cat-name'}, 'Kitchen Render I'),
+            React.createElement('div', {className:'cat-desc'}, '360° CGI walkthrough showcasing cabinet layout, finishes, lighting, and spatial flow.'),
+            React.createElement('div', {className:'cat-foot'},
+              React.createElement('div', {className:'cat-price'}, 'Custom Design'),
+              React.createElement('button', {className:'cat-cta-btn', onClick:()=>setPage('contact')}, 'Enquire →')
+            )
+          )
+        ),
+        /* Video card 2 */
+        React.createElement('div', {
+          className:'cat-card',
+          onMouseEnter:()=>{if(v2.current){v2.current.play();}},
+          onMouseLeave:()=>{if(v2.current){v2.current.pause();}}
+        },
+          React.createElement('div', {className:'cat-vid-wrap'},
+            React.createElement('video', {ref:v2, muted:true, loop:true, playsInline:true, preload:'metadata'},
+              React.createElement('source', {src:'kitchen2.mp4', type:'video/mp4'})
+            ),
+            React.createElement('div', {className:'cat-vid-ov'},
+              React.createElement('button', {className:'play-btn', onClick:()=>{if(v2.current){v2.current.paused?v2.current.play():v2.current.pause();}}},
+                React.createElement('svg', {viewBox:'0 0 24 24'}, React.createElement('path', {d:'M8 5v14l11-7z'}))
+              )
+            ),
+            React.createElement('div', {className:'cat-badge'}, '3D Render')
+          ),
+          React.createElement('div', {className:'cat-body'},
+            React.createElement('div', {className:'cat-cat'}, 'Modular Kitchen'),
+            React.createElement('div', {className:'cat-name'}, 'Kitchen Render II'),
+            React.createElement('div', {className:'cat-desc'}, 'Second-angle render highlighting island configuration, handleless shutters, and premium countertop finishes.'),
+            React.createElement('div', {className:'cat-foot'},
+              React.createElement('div', {className:'cat-price'}, 'Custom Design'),
+              React.createElement('button', {className:'cat-cta-btn', onClick:()=>setPage('contact')}, 'Enquire →')
+            )
+          )
+        ),
+        /* 3rd placeholder */
+        React.createElement('div', {className:'cat-card', style:{display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'1rem',padding:'2.5rem',textAlign:'center'}},
+          React.createElement('div', {style:{fontFamily:'Cormorant Garamond,serif',fontSize:'4rem',color:'rgba(201,168,76,0.12)'}}, '⬡'),
+          React.createElement('div', {style:{fontSize:'.55rem',letterSpacing:'.2em',textTransform:'uppercase',color:'rgba(201,168,76,0.35)'}}, 'More renders coming soon'),
+          React.createElement('button', {className:'btn-outline', style:{fontSize:'.55rem',padding:'.6rem 1.2rem'}, onClick:()=>setPage('contact')}, 'Request a 3D Preview')
+        )
+      ),
+      shown.map((c,i) =>
+        React.createElement('div', {key:c.name+i, className:'cat-card reveal', style:{transitionDelay:(i%3)*0.08+'s'}},
+          React.createElement('div', {className:'cat-thumb', style:{background:c.bg}},
+            c.badge && React.createElement('div', {className:'cat-badge'}, c.badge),
+            c.icon
+          ),
+          React.createElement('div', {className:'cat-body'},
+            React.createElement('div', {className:'cat-cat'}, c.cat_lbl),
+            React.createElement('div', {className:'cat-name'}, c.name),
+            React.createElement('div', {className:'cat-desc'}, c.desc),
+            React.createElement('div', {className:'cat-foot'},
+              React.createElement('div', {className:'cat-price'}, c.price),
+              React.createElement('button', {className:'cat-cta-btn', onClick:()=>setPage('contact')}, 'Enquire →')
+            )
+          )
+        )
+      )
+    ),
+    React.createElement('div', {style:{textAlign:'center',padding:'1rem 4rem 5rem',borderTop:'.5px solid rgba(201,168,76,0.1)'}},
+      React.createElement('p', {style:{fontSize:'.7rem',color:'var(--gray)',marginBottom:'1.2rem',letterSpacing:'.1em'}}, "Don't see what you need? We do fully bespoke projects."),
+      React.createElement('button', {className:'btn-gold', onClick:()=>setPage('contact')}, 'Discuss a Custom Project')
+    ),
+    React.createElement(Footer, {setPage})
+  );
+}
+
+/* ── CONTACT ── */
+function Contact({setPage}) {
+  useReveal();
+  const [sent, setSent] = useState(false);
+  const onSubmit = e => { e.preventDefault(); setSent(true); };
+
+  return React.createElement('div', {className:'page'},
+    React.createElement('div', {className:'page-hdr'},
+      React.createElement('div', {className:'sec-lbl'}, "Let's Talk"),
+      React.createElement('h1', null, 'Get In ', React.createElement('em', null, 'Touch'))
+    ),
+    React.createElement('div', {className:'contact-grid'},
+      React.createElement('div', null,
+        React.createElement('div', {className:'sec-lbl', style:{marginBottom:'1.4rem'}}, 'Send Us a Message'),
+        !sent
+          ? React.createElement('form', {className:'c-form', onSubmit:onSubmit},
+              React.createElement('div', {className:'f-row'},
+                React.createElement('div', {className:'f-grp'}, React.createElement('label',{className:'f-lbl'},'First Name'), React.createElement('input',{className:'f-in',type:'text',placeholder:'Rahul',required:true})),
+                React.createElement('div', {className:'f-grp'}, React.createElement('label',{className:'f-lbl'},'Last Name'),  React.createElement('input',{className:'f-in',type:'text',placeholder:'Sharma',required:true}))
+              ),
+              React.createElement('div',{className:'f-grp'},React.createElement('label',{className:'f-lbl'},'Email'),React.createElement('input',{className:'f-in',type:'email',placeholder:'rahul@example.com',required:true})),
+              React.createElement('div',{className:'f-grp'},React.createElement('label',{className:'f-lbl'},'Phone'),React.createElement('input',{className:'f-in',type:'tel',placeholder:'+91 98765 43210'})),
+              React.createElement('div',{className:'f-grp'},
+                React.createElement('label',{className:'f-lbl'},'Service'),
+                React.createElement('select',{className:'f-sel'},
+                  ['Select a service','Modular Kitchen','Wardrobe','Vanity','TV Unit','Glass Partition','Doors and Doorcases','Complete Interior Design'].map(o=>React.createElement('option',{key:o},o))
+                )
+              ),
+              React.createElement('div',{className:'f-grp'},React.createElement('label',{className:'f-lbl'},'Project Details'),React.createElement('textarea',{className:'f-ta',placeholder:'Tell us about your project, budget, timeline...'})),
+              React.createElement('button',{type:'submit',className:'btn-gold',style:{width:'100%',justifyContent:'center'}},'Send Message →')
+            )
+          : React.createElement('div',{style:{textAlign:'center',padding:'3rem',border:'.5px solid var(--gold)',background:'rgba(201,168,76,0.04)'}},
+              React.createElement('div',{style:{fontFamily:'Cormorant Garamond,serif',fontSize:'3rem',color:'var(--gold)',marginBottom:'.8rem'}},'✓'),
+              React.createElement('h3',{style:{fontFamily:'Cormorant Garamond,serif',fontSize:'1.8rem',fontWeight:300,color:'var(--gold)',marginBottom:'.5rem'}},'Message Sent'),
+              React.createElement('p',{style:{fontSize:'.78rem',color:'var(--gray)'}},"We'll get back to you within 24 hours.")
+            )
+      ),
+      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'2.2rem'}},
+        React.createElement('div',null,
+          React.createElement('div',{className:'info-title'},'Visit Our Studio'),
+          React.createElement('div',{className:'map-box'},
+            React.createElement('span',null,'📍'),
+            React.createElement('span',null,'Mumbai Studio'),
+            React.createElement('span',{className:'map-sub'},'Book an appointment to visit')
+          ),
+          React.createElement('p',{className:'info-text',style:{marginTop:'1rem'}},'Shop No. 12, Design Hub, Andheri West',React.createElement('br'),'Mumbai, Maharashtra — 400053')
+        ),
+        React.createElement('div',null,
+          React.createElement('div',{className:'info-title'},'Reach Us'),
+          React.createElement('p',{className:'info-text'},
+            'Phone: ',React.createElement('a',{className:'info-link',href:'tel:+919306109466'},'+91 93061 09466'),React.createElement('br'),
+            'Email: ',React.createElement('a',{className:'info-link',href:'mailto:hello@innerspace.in'},'hello@innerspace.in'),React.createElement('br'),
+            'Instagram: ',React.createElement('a',{className:'info-link',href:'https://www.instagram.com/kitchen.modular',target:'_blank',rel:'noreferrer'},'@kitchen.modular')
+          )
+        ),
+        React.createElement('div',null,
+          React.createElement('div',{className:'info-title'},'Studio Hours'),
+          React.createElement('p',{className:'info-text'},'Monday – Saturday: 10:00 AM – 7:00 PM',React.createElement('br'),'Sunday: By Appointment Only')
+        ),
+        React.createElement('a',{className:'btn-outline',href:WA,target:'_blank',rel:'noreferrer',style:{width:'fit-content'}},'WhatsApp Us →')
+      )
+    ),
+    React.createElement(Footer, {setPage})
+  );
+}
+
+/* ── APP ── */
+function App() {
+  const [page, setPage]           = useState('home');
+  const [railOpen, setRailOpen]   = useState(false);
+  const [mobOpen,  setMobOpen]    = useState(false);
+  const [isMobile, setIsMobile]   = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const go = useCallback(p => {
+    setPage(p); setRailOpen(false); setMobOpen(false);
+    window.scrollTo(0, 0);
+  }, []);
+
+  return React.createElement(React.Fragment, null,
+    React.createElement(Cursor),
+    React.createElement(Particles),
+    isMobile
+      ? React.createElement(MobileTopbar, {page, setPage:go, open:mobOpen, setOpen:setMobOpen})
+      : React.createElement(Sidebar,      {page, setPage:go, open:railOpen, setOpen:setRailOpen}),
+    React.createElement('div', {id:'app-inner', className:'main'+((!isMobile)?' shifted':'')},
+      page==='home'      && React.createElement(Home,      {setPage:go}),
+      page==='catalogue' && React.createElement(Catalogue, {setPage:go}),
+      page==='contact'   && React.createElement(Contact,   {setPage:go})
+    ),
+    React.createElement('a', {className:'wa-fab', href:WA, target:'_blank', rel:'noreferrer', title:'WhatsApp Us'},
+      React.createElement('svg', {viewBox:'0 0 24 24'},
+        React.createElement('path', {d:'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z'}),
+        React.createElement('path', {d:'M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.523 5.847L.057 23.428a.75.75 0 0 0 .921.921l5.581-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.907 0-3.7-.513-5.241-1.408l-.375-.22-3.862 1.015 1.015-3.862-.22-.375A9.956 9.956 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z'})
+      )
+    )
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('app'));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
