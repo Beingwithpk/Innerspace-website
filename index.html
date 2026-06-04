@@ -311,7 +311,8 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 
 /* ─── CTA ─── */
 .cta-sec{text-align:center;position:relative;overflow:hidden;padding:6rem 4rem}
-.cta-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.07),transparent 70%)}
+.cta-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.07),transparent 70%);pointer-events:none}
+.cta-sec .cta-title,.cta-sec .cta-sub,.cta-sec .btn-row{position:relative;z-index:1}
 .cta-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4.5vw,4.2rem);font-weight:300;margin-bottom:1.6rem;position:relative}
 .cta-title em{font-style:italic;color:var(--gold)}
 .cta-sub{font-size:.72rem;color:var(--gray);margin-bottom:2rem;letter-spacing:.1em}
@@ -369,7 +370,7 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 
 /* ─── CONTACT ─── */
 .page-hdr{padding:7rem 4rem 3.5rem;background:var(--black-mid);border-bottom:.5px solid rgba(201,168,76,.14);text-align:center;position:relative;overflow:hidden}
-.page-hdr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.05),transparent 70%)}
+.page-hdr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.05),transparent 70%);pointer-events:none}
 .page-hdr .sec-lbl,.page-hdr h1{position:relative;z-index:1}
 .page-hdr h1{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,3.2rem);font-weight:300}
 .page-hdr h1 em{font-style:italic;color:var(--gold)}
@@ -474,17 +475,17 @@ const PROJECTS = [
 ];
 
 const CATALOGUE = [
-  {cat:'kitchen', img:'generate_me_pictures_of_modular_202606022307.jpeg', badge:'Bestseller', cat_lbl:'Modular Kitchen', name:'Aurum Series', desc:'Sleek handle-less design with acrylic high-gloss shutters and quartz countertops.', price:'From ₹4.5L'},
-  {cat:'kitchen', img:'more_modular_kitchen_something_in_202606022308.jpeg', badge:null,        cat_lbl:'Modular Kitchen', name:'Obsidian Series', desc:'Bold matte black finishes with integrated appliances and under-cabinet lighting.', price:'From ₹5.8L'},
-  {cat:'kitchen', img:'Modular_Kitchen_Ivory_Classic_Timeless_202606022315.jpeg', badge:'New',  cat_lbl:'Modular Kitchen', name:'Ivory Classic', desc:'Timeless shaker-style cabinetry in warm ivory tones with granite tops.', price:'From ₹3.8L'},
-  {cat:'kitchen', img:'indian_modular_kitchen_2K_202606022307.jpeg', badge:null,                cat_lbl:'Modular Kitchen', name:'Indian Heritage', desc:'Vibrant Indian modular kitchen with navy blue cabinetry, Bosch appliances and masala rack.', price:'From ₹3.2L'},
-  {cat:'wardrobe',img:'Wardrobe_Luxe_Walk-in_Floor-to-ceiling_mirrored_202606022314.jpeg', badge:'Bestseller', cat_lbl:'Wardrobe', name:'Luxe Walk-in', desc:'Floor-to-ceiling mirrored walk-in wardrobes with LED lighting and velvet drawers.', price:'From ₹2.2L'},
-  {cat:'wardrobe',img:'Wardrobe_Sliding_Panel_Space-saving_sliding_202606022321.jpeg', badge:null,           cat_lbl:'Wardrobe',        name:'Sliding Panel', desc:'Space-saving sliding door wardrobes with full-height glass or laminate panels.', price:'From ₹85,000'},
-  {cat:'wardrobe',img:'now_make_images_of_modular_202606022310.jpeg', badge:null,               cat_lbl:'Wardrobe',        name:'Corner Walk-in', desc:'Wrap-around corner wardrobe with open shelving, shoe racks and integrated lighting.', price:'From ₹1.4L'},
-  {cat:'vanity',  img:'Spa_Retreat_Vanity_Double-sink_vanities_202606022312.jpeg', badge:null,  cat_lbl:'Vanity',          name:'Spa Retreat Vanity', desc:'Double-sink vanities with backlit mirrors and high-gloss lacquer finishes.', price:'From ₹95,000'},
-  {cat:'tvunit',  img:'TV_Unit_Panorama_Unit_Full_202606022322.jpeg', badge:'New',         cat_lbl:'TV Unit',         name:'Panorama Unit', desc:'Full wall entertainment units with concealed wiring and integrated lighting.', price:'From ₹1.2L'},
-  {cat:'glass',   img:'Frameless_Dividers_10mm_tempered_glass_202606022313.jpeg', badge:null,   cat_lbl:'Glass Partition', name:'Frameless Dividers', desc:'10mm tempered glass partitions with minimal aluminium framing.', price:'From ₹650/sqft'},
-  {cat:'door',    img:'Doors_Artisan_Doors_Solid_wood_202606022324.jpeg', badge:null,          cat_lbl:'Doors',           name:'Artisan Doors', desc:'Solid wood and engineered panel doors with custom profiles and precision frames.', price:'From ₹18,000'},
+  {cat:'kitchen', img:'generate_me_pictures_of_modular_202606022307.jpg', badge:'Bestseller',loading:"lazy", cat_lbl:'Modular Kitchen', name:'Aurum Series', desc:'Sleek handle-less design with acrylic high-gloss shutters and quartz countertops.', price:'From ₹4.5L'},
+  {cat:'kitchen', img:'more_modular_kitchen_something_in_202606022308.jpg', badge:null,loading:"lazy",        cat_lbl:'Modular Kitchen', name:'Obsidian Series', desc:'Bold matte black finishes with integrated appliances and under-cabinet lighting.', price:'From ₹5.8L'},
+  {cat:'kitchen', img:'Modular_Kitchen_Ivory_Classic_Timeless_202606022315.jpg', badge:'New',loading:"lazy",  cat_lbl:'Modular Kitchen', name:'Ivory Classic', desc:'Timeless shaker-style cabinetry in warm ivory tones with granite tops.', price:'From ₹3.8L'},
+  {cat:'kitchen', img:'indian_modular_kitchen_2K_202606022307.jpg', badge:null,      loading:"lazy",          cat_lbl:'Modular Kitchen', name:'Indian Heritage', desc:'Vibrant Indian modular kitchen with navy blue cabinetry, Bosch appliances and masala rack.', price:'From ₹3.2L'},
+  {cat:'wardrobe',img:'Wardrobe_Luxe_Walk-in_Floor-to-ceiling_mirrored_202606022314.jpg',loading:"lazy", badge:'Bestseller', cat_lbl:'Wardrobe', name:'Luxe Walk-in', desc:'Floor-to-ceiling mirrored walk-in wardrobes with LED lighting and velvet drawers.', price:'From ₹2.2L'},
+  {cat:'wardrobe',img:'Wardrobe_Sliding_Panel_Space-saving_sliding_202606022321.jpg',loading:"lazy", badge:null,           cat_lbl:'Wardrobe',        name:'Sliding Panel', desc:'Space-saving sliding door wardrobes with full-height glass or laminate panels.', price:'From ₹85,000'},
+  {cat:'wardrobe',img:'now_make_images_of_modular_202606022310.jpg', badge:null, loading:"lazy",              cat_lbl:'Wardrobe',        name:'Corner Walk-in', desc:'Wrap-around corner wardrobe with open shelving, shoe racks and integrated lighting.', price:'From ₹1.4L'},
+  {cat:'vanity',  img:'Spa_Retreat_Vanity_Double-sink_vanities_202606022312.jpg',loading:"lazy", badge:null,  cat_lbl:'Vanity',          name:'Spa Retreat Vanity', desc:'Double-sink vanities with backlit mirrors and high-gloss lacquer finishes.', price:'From ₹95,000'},
+  {cat:'tvunit',  img:'TV_Unit_Panorama_Unit_Full_202606022322.jpg', badge:'New', loading:"lazy",        cat_lbl:'TV Unit',         name:'Panorama Unit', desc:'Full wall entertainment units with concealed wiring and integrated lighting.', price:'From ₹1.2L'},
+  {cat:'glass',   img:'Frameless_Dividers_10mm_tempered_glass_202606022313.jpg',loading:"lazy", badge:null,   cat_lbl:'Glass Partition', name:'Frameless Dividers', desc:'10mm tempered glass partitions with minimal aluminium framing.', price:'From ₹650/sqft'},
+  {cat:'door',    img:'Doors_Artisan_Doors_Solid_wood_202606022324.jpg', badge:null,loading:"lazy",          cat_lbl:'Doors',           name:'Artisan Doors', desc:'Solid wood and engineered panel doors with custom profiles and precision frames.', price:'From ₹18,000'},
 ];
 
 const FAQS = [
