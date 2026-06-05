@@ -390,8 +390,12 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 .info-text{font-size:.8rem;line-height:2;color:var(--gray)}
 .info-link{color:var(--gold);text-decoration:none}
 .info-link:hover{opacity:.7}
-.map-box{width:100%;height:190px;background:var(--black-card);border:.5px solid rgba(201,168,76,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;color:rgba(201,168,76,.32);font-family:'Cormorant Garamond',serif;font-size:1.3rem}
-.map-sub{font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase}
+.map-box{width:100%;height:260px;position:relative;border:.5px solid rgba(201,168,76,.22);overflow:hidden;background:var(--black-card)}
+.map-box iframe{width:100%;height:100%;border:0;display:block;filter:grayscale(1) invert(1) contrast(0.88) brightness(0.72) sepia(0.18);transition:filter .4s}
+.map-box:hover iframe{filter:grayscale(0.6) invert(1) contrast(0.9) brightness(0.78) sepia(0.12)}
+.map-pin-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(8,8,8,.92) 0%,rgba(8,8,8,.0) 100%);padding:.8rem 1rem .65rem;pointer-events:none;display:flex;align-items:center;gap:.55rem}
+.map-pin-label span{font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.map-pin-label svg{width:13px;height:13px;fill:var(--gold);flex-shrink:0}
 
 /* ─── FOOTER ─── */
 footer{background:var(--black-mid);border-top:.5px solid rgba(201,168,76,.16);padding:3.5rem 4rem}
@@ -418,6 +422,53 @@ footer{background:var(--black-mid);border-top:.5px solid rgba(201,168,76,.16);pa
 
 /* ─── PARTICLES ─── */
 .ptcl{position:fixed;width:2px;height:2px;background:var(--gold);border-radius:50%;opacity:0;pointer-events:none;animation:floatup var(--dur) var(--delay) infinite linear;z-index:0}
+
+/* ─── PRICE CALCULATOR ─── */
+.calc-tabs{display:flex;gap:0;border-bottom:.5px solid rgba(201,168,76,.16);overflow-x:auto;scrollbar-width:none}
+.calc-tabs::-webkit-scrollbar{display:none}
+.calc-tab{flex-shrink:0;padding:.85rem 1.6rem;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,240,232,.38);transition:color .25s,border-color .25s;white-space:nowrap}
+.calc-tab:hover{color:var(--white)}
+.calc-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.calc-body{display:grid;grid-template-columns:1fr 380px;gap:2.5rem;padding:2.5rem 4rem 5rem;align-items:start}
+@media(max-width:1080px){.calc-body{grid-template-columns:1fr;padding:2rem 1.5rem 4rem}}
+.calc-form{display:flex;flex-direction:column;gap:2rem}
+.calc-section{border:.5px solid rgba(201,168,76,.1);background:var(--black-card);padding:1.8rem}
+.calc-section-title{font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1.4rem;padding-bottom:.7rem;border-bottom:.5px solid rgba(201,168,76,.1)}
+.calc-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:520px){.calc-row{grid-template-columns:1fr}}
+.calc-row:last-child{margin-bottom:0}
+.calc-field{display:flex;flex-direction:column;gap:.38rem}
+.calc-field.full{grid-column:1/-1}
+.c-lbl{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,240,232,.4)}
+.c-in,.c-sel{background:var(--black-soft);border:.5px solid rgba(201,168,76,.15);color:var(--white);padding:.75rem .95rem;font-family:'Montserrat',sans-serif;font-size:.74rem;font-weight:300;outline:none;transition:border-color .3s;appearance:none;width:100%}
+.c-in:focus,.c-sel:focus{border-color:var(--gold)}
+.c-sel option{background:var(--black-card)}
+.range-wrap{display:flex;flex-direction:column;gap:.5rem}
+.range-val{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold);text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;background:rgba(201,168,76,.18);outline:none;border-radius:1px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;border:.5px solid rgba(201,168,76,.5);box-shadow:0 0 8px rgba(201,168,76,.3)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;border:.5px solid rgba(201,168,76,.5)}
+.chip-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.2rem}
+.chip{padding:.38rem .9rem;border:.5px solid rgba(201,168,76,.2);background:none;color:rgba(245,240,232,.45);font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .25s;border-radius:2px}
+.chip:hover{border-color:rgba(201,168,76,.5);color:var(--white)}
+.chip.on{border-color:var(--gold);background:rgba(201,168,76,.1);color:var(--gold)}
+/* summary panel */
+.calc-summary{position:sticky;top:80px;border:.5px solid rgba(201,168,76,.22);background:var(--black-card)}
+.sum-head{background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04));padding:1.4rem 1.6rem;border-bottom:.5px solid rgba(201,168,76,.14)}
+.sum-head-lbl{font-size:.5rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(201,168,76,.7);margin-bottom:.3rem}
+.sum-head-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;color:var(--gold)}
+.sum-body{padding:1.4rem 1.6rem;display:flex;flex-direction:column;gap:0}
+.sum-line{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:.5px solid rgba(201,168,76,.07);font-size:.64rem;color:var(--gray)}
+.sum-line:last-child{border-bottom:none}
+.sum-line strong{color:var(--white);font-weight:400}
+.sum-line.sub-item{padding-left:.8rem;opacity:.8}
+.sum-total{margin:1rem 1.6rem 0;border-top:.5px solid rgba(201,168,76,.3);padding:1rem 0;display:flex;justify-content:space-between;align-items:baseline}
+.sum-total-lbl{font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.sum-total-val{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);line-height:1}
+.sum-note{margin:0 1.6rem;padding:.6rem .8rem;background:rgba(201,168,76,.04);border-left:2px solid rgba(201,168,76,.3);font-size:.6rem;color:rgba(245,240,232,.4);line-height:1.65}
+.sum-actions{padding:1.4rem 1.6rem;display:flex;flex-direction:column;gap:.75rem}
+.sum-disclaimer{font-size:.56rem;color:rgba(245,240,232,.26);line-height:1.7;text-align:center;padding:.5rem 1.6rem 1.4rem}
+.calc-empty{text-align:center;padding:3rem;color:rgba(245,240,232,.25);font-family:'Cormorant Garamond',serif;font-size:1.1rem}
 
 /* ─── BACK BUTTON ─── */
 .back-btn{
@@ -497,10 +548,11 @@ const FAQS = [
 ];
 
 const NAV = [
-  {id:'home',      icon:'◈', label:'Home'},
-  {id:'catalogue', icon:'◰', label:'Catalogue'},
-  {id:'faq',       icon:'?', label:'FAQ'},
-  {id:'contact',   icon:'◇', label:'Contact'},
+  {id:'home',       icon:'◈', label:'Home'},
+  {id:'catalogue',  icon:'◰', label:'Catalogue'},
+  {id:'calculator', icon:'◎', label:'Estimate'},
+  {id:'faq',        icon:'?', label:'FAQ'},
+  {id:'contact',    icon:'◇', label:'Contact'},
 ];
 
 /* ── BACK BUTTON ── */
@@ -646,7 +698,7 @@ function Footer({setPage}) {
       React.createElement('div', null,
         React.createElement('div', {className:'ft-col-title'}, 'Navigate'),
         React.createElement('div', {className:'ft-links'},
-          NAV.map(n => React.createElement('button', {key:n.id, className:'ft-link', onClick:()=>setPage(n.id)}, n.label))
+          NAV.map(n => React.createElement('button', {key:n.id, className:'ft-link', onClick:()=>setPage(n.id)}, n.label === 'Estimate' ? 'Price Calculator' : n.label))
         )
       ),
       React.createElement('div', null,
@@ -1103,9 +1155,17 @@ function Contact({setPage}) {
         React.createElement('div',null,
           React.createElement('div',{className:'info-title'},'Visit Our Studio'),
           React.createElement('div',{className:'map-box'},
-            React.createElement('span',null,'📍'),
-            React.createElement('span',null,'Delhi Studio'),
-            React.createElement('span',{className:'map-sub'},'Book an appointment to visit')
+            React.createElement('iframe',{
+              src:'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3499.679913836493!2d77.12492587731646!3d28.699220091760697!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d03f9b31d64a3%3A0x47cd301003de075!2sKitchen%20Gallery%20%2F%20Innerspace!5e0!3m2!1sen!2sin!4v1780607629378!5m2!1sen!2sin',
+              title:'Innerspace Delhi Studio',
+              loading:'lazy',
+              referrerPolicy:'no-referrer-when-downgrade',
+              allowFullScreen:true
+            }),
+            React.createElement('div',{className:'map-pin-label'},
+              React.createElement('svg',{viewBox:'0 0 24 24'},React.createElement('path',{d:'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'})),
+              React.createElement('span',null,'Saraswati Vihar, Pitampura — New Delhi 110087')
+            )
           ),
           React.createElement('p',{className:'info-text',style:{marginTop:'1rem'}},'C-602, Saraswati vihar, Pitampura',React.createElement('br'),'New Delhi — 110087')
         ),
@@ -1122,6 +1182,401 @@ function Contact({setPage}) {
           React.createElement('p',{className:'info-text'},'Tuesday – Sunday: 10:00 AM – 7:00 PM',React.createElement('br'),'Monday: By Appointment Only')
         ),
         React.createElement('a',{className:'btn-outline',href:WA,target:'_blank',rel:'noreferrer',style:{width:'fit-content'}},'WhatsApp Us →')
+      )
+    ),
+    React.createElement(Footer, {setPage})
+  );
+}
+
+/* ── PRICE CALCULATOR ── */
+function PriceCalculator({setPage}) {
+  useReveal();
+  const [tab, setTab] = useState('kitchen');
+
+  /* ── KITCHEN STATE ── */
+  const [kSize,   setKSize]   = useState(10);
+  const [kLayout, setKLayout] = useState('L-Shape');
+  const [kShutter,setKShutter]= useState('Acrylic High-Gloss');
+  const [kCounter,setKCounter]= useState('Quartz');
+  const [kAppl,   setKAppl]   = useState([]);
+  const [kCabinet,setKCabinet]= useState('18mm HDHMR');
+
+  /* ── WARDROBE STATE ── */
+  const [wWidth,  setWWidth]  = useState(6);
+  const [wHeight, setWHeight] = useState(8);
+  const [wType,   setWType]   = useState('Sliding');
+  const [wFinish, setWFinish] = useState('Laminate');
+  const [wAcc,    setWAcc]    = useState([]);
+
+  /* ── VANITY STATE ── */
+  const [vSize,   setVSize]   = useState('Single Sink');
+  const [vFinish, setVFinish] = useState('High-Gloss Lacquer');
+  const [vMirror, setVMirror] = useState('LED Backlit');
+  const [vBasin,  setVBasin]  = useState('Under-mount');
+
+  /* ── TV UNIT STATE ── */
+  const [tWidth,  setTWidth]  = useState(8);
+  const [tStyle,  setTStyle]  = useState('Full Wall');
+  const [tFinish, setTFinish] = useState('Matte Laminate');
+  const [tAcc,    setTAcc]    = useState([]);
+
+  const toggleArr = (arr, setArr, val) =>
+    setArr(arr.includes(val) ? arr.filter(x=>x!==val) : [...arr, val]);
+
+  /* ── PRICE LOGIC ── */
+  const calcKitchen = () => {
+    const base = {
+      'Straight': 45000, 'L-Shape': 55000, 'U-Shape': 75000,
+      'Island': 95000, 'Parallel': 65000
+    }[kLayout] || 55000;
+    const shutterMult = {
+      'Acrylic High-Gloss':1.0,'Membrane':0.82,'PU Paint':1.15,
+      'Veneer':1.25,'Laminate':0.75,'Lacquered Glass':1.35
+    }[kShutter] || 1;
+    const counterAdd = {
+      'Quartz':18000,'Granite':14000,'Marble':22000,
+      'Compact Laminate':9000,'Corian':16000
+    }[kCounter] || 14000;
+    const cabinetMult = {'18mm HDHMR':1.0,'18mm BWR Plywood':1.12,'Marine Plywood':1.22}[kCabinet]||1;
+    const applAdd = kAppl.length * 8000;
+    return Math.round((base * kSize * shutterMult * cabinetMult + counterAdd + applAdd) / 1000) * 1000;
+  };
+
+  const calcWardrobe = () => {
+    const sqft = wWidth * wHeight;
+    const base = {'Sliding':950,'Hinged':820,'Walk-in Open':780,'Pocket':1050}[wType]||900;
+    const finMult = {'Laminate':1.0,'Veneer':1.25,'PU Paint':1.18,'Acrylic':1.32,'Membrane':0.88}[wFinish]||1;
+    const accAdd = wAcc.includes('LED Lighting')?6500:0
+      + (wAcc.includes('Velvet Drawers')?4500:0)
+      + (wAcc.includes('Shoe Racks')?3500:0)
+      + (wAcc.includes('Mirror Panel')?5000:0)
+      + (wAcc.includes('Trouser Pull-out')?3000:0);
+    return Math.round((sqft * base * finMult + accAdd) / 500) * 500;
+  };
+
+  const calcVanity = () => {
+    const base = {'Single Sink':48000,'Double Sink':78000,'Floating Vanity':55000,'Freestanding':65000}[vSize]||48000;
+    const finMult = {'High-Gloss Lacquer':1.0,'Matte Lacquer':0.95,'Veneer':1.2,'Acrylic':1.1,'PU Paint':1.08}[vFinish]||1;
+    const mirrorAdd = {'LED Backlit':12000,'Plain Frameless':5500,'Medicine Cabinet':9500,'Fog-free LED':15000}[vMirror]||8000;
+    const basinAdd = {'Under-mount':4500,'Vessel':6000,'Semi-recessed':3800,'Above-counter':7000}[vBasin]||4500;
+    return Math.round((base * finMult + mirrorAdd + basinAdd) / 500) * 500;
+  };
+
+  const calcTV = () => {
+    const base = {'Full Wall':3800,'Floating Panel':2800,'L-Shape Unit':3200,'Entertainment Hub':4200}[tStyle]||3200;
+    const finMult = {'Matte Laminate':1.0,'High-Gloss':1.1,'Veneer':1.22,'PU Paint':1.15,'Fluted Panel':1.18}[tFinish]||1;
+    const accAdd = (tAcc.includes('LED Profile Lighting')?4500:0)
+      + (tAcc.includes('Fireplace Panel')?18000:0)
+      + (tAcc.includes('Wire Management')?2500:0)
+      + (tAcc.includes('Display Niches')?3500:0)
+      + (tAcc.includes('Speaker Grille')?2800:0);
+    return Math.round((tWidth * base * finMult + accAdd) / 500) * 500;
+  };
+
+  const fmt = n => '₹' + n.toLocaleString('en-IN');
+
+  /* ── SUMMARY DATA ── */
+  const summaries = {
+    kitchen: {
+      title:'Modular Kitchen',
+      price: calcKitchen(),
+      lines:[
+        {label:'Layout', val:kLayout},
+        {label:'Size', val:kSize+' ft'},
+        {label:'Shutter Finish', val:kShutter},
+        {label:'Cabinet Material', val:kCabinet},
+        {label:'Countertop', val:kCounter},
+        {label:'Appliance Spaces', val:kAppl.length ? kAppl.join(', ') : 'None'},
+      ]
+    },
+    wardrobe: {
+      title:'Wardrobe',
+      price: calcWardrobe(),
+      lines:[
+        {label:'Width × Height', val:wWidth+'ft × '+wHeight+'ft'},
+        {label:'Door Type', val:wType},
+        {label:'Finish', val:wFinish},
+        {label:'Accessories', val:wAcc.length ? wAcc.join(', ') : 'None'},
+      ]
+    },
+    vanity: {
+      title:'Vanity',
+      price: calcVanity(),
+      lines:[
+        {label:'Type', val:vSize},
+        {label:'Finish', val:vFinish},
+        {label:'Mirror', val:vMirror},
+        {label:'Basin', val:vBasin},
+      ]
+    },
+    tvunit: {
+      title:'TV Unit',
+      price: calcTV(),
+      lines:[
+        {label:'Style', val:tStyle},
+        {label:'Width', val:tWidth+' ft'},
+        {label:'Finish', val:tFinish},
+        {label:'Extras', val:tAcc.length ? tAcc.join(', ') : 'None'},
+      ]
+    },
+  };
+
+  const sum = summaries[tab];
+
+  const TABS = [
+    {id:'kitchen',  label:'Modular Kitchen'},
+    {id:'wardrobe', label:'Wardrobe'},
+    {id:'vanity',   label:'Vanity'},
+    {id:'tvunit',   label:'TV Unit'},
+  ];
+
+  /* ── FORM PANELS ── */
+  const KitchenForm = () => React.createElement('div', {className:'calc-form'},
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Space & Layout'),
+      React.createElement('div', {className:'calc-row'},
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Kitchen Size (running ft)'),
+          React.createElement('div', {className:'range-wrap'},
+            React.createElement('input', {type:'range', min:6, max:30, value:kSize, onChange:e=>setKSize(+e.target.value)}),
+            React.createElement('div', {className:'range-val'}, kSize+' ft')
+          )
+        ),
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Layout Style'),
+          React.createElement('select', {className:'c-sel', value:kLayout, onChange:e=>setKLayout(e.target.value)},
+            ['Straight','L-Shape','U-Shape','Island','Parallel'].map(o=>React.createElement('option',{key:o},o))
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Materials & Finishes'),
+      React.createElement('div', {className:'calc-row'},
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Shutter Finish'),
+          React.createElement('select', {className:'c-sel', value:kShutter, onChange:e=>setKShutter(e.target.value)},
+            ['Acrylic High-Gloss','Membrane','PU Paint','Veneer','Laminate','Lacquered Glass'].map(o=>React.createElement('option',{key:o},o))
+          )
+        ),
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Cabinet Carcass'),
+          React.createElement('select', {className:'c-sel', value:kCabinet, onChange:e=>setKCabinet(e.target.value)},
+            ['18mm HDHMR','18mm BWR Plywood','Marine Plywood'].map(o=>React.createElement('option',{key:o},o))
+          )
+        )
+      ),
+      React.createElement('div', {className:'calc-row'},
+        React.createElement('div', {className:'calc-field full'},
+          React.createElement('label', {className:'c-lbl'}, 'Countertop'),
+          React.createElement('div', {className:'chip-row'},
+            ['Quartz','Granite','Marble','Compact Laminate','Corian'].map(o=>
+              React.createElement('button', {key:o, className:'chip'+(kCounter===o?' on':''), onClick:()=>setKCounter(o)}, o)
+            )
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Appliance Spaces'),
+      React.createElement('div', {className:'calc-field'},
+        React.createElement('label', {className:'c-lbl'}, 'Select all that apply'),
+        React.createElement('div', {className:'chip-row'},
+          ['Chimney','Hob','Microwave Tower','Dishwasher','Refrigerator Surround','Oven Column'].map(o=>
+            React.createElement('button', {key:o, className:'chip'+(kAppl.includes(o)?' on':''), onClick:()=>toggleArr(kAppl,setKAppl,o)}, o)
+          )
+        )
+      )
+    )
+  );
+
+  const WardrobeForm = () => React.createElement('div', {className:'calc-form'},
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Dimensions'),
+      React.createElement('div', {className:'calc-row'},
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Width (ft)'),
+          React.createElement('div', {className:'range-wrap'},
+            React.createElement('input', {type:'range', min:3, max:20, value:wWidth, onChange:e=>setWWidth(+e.target.value)}),
+            React.createElement('div', {className:'range-val'}, wWidth+' ft')
+          )
+        ),
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Height (ft)'),
+          React.createElement('div', {className:'range-wrap'},
+            React.createElement('input', {type:'range', min:6, max:12, value:wHeight, onChange:e=>setWHeight(+e.target.value)}),
+            React.createElement('div', {className:'range-val'}, wHeight+' ft')
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Type & Finish'),
+      React.createElement('div', {className:'calc-row'},
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Door Type'),
+          React.createElement('div', {className:'chip-row'},
+            ['Sliding','Hinged','Walk-in Open','Pocket'].map(o=>
+              React.createElement('button', {key:o, className:'chip'+(wType===o?' on':''), onClick:()=>setWType(o)}, o)
+            )
+          )
+        ),
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Shutter Finish'),
+          React.createElement('select', {className:'c-sel', value:wFinish, onChange:e=>setWFinish(e.target.value)},
+            ['Laminate','Veneer','PU Paint','Acrylic','Membrane'].map(o=>React.createElement('option',{key:o},o))
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Accessories'),
+      React.createElement('div', {className:'calc-field'},
+        React.createElement('label', {className:'c-lbl'}, 'Select all that apply'),
+        React.createElement('div', {className:'chip-row'},
+          ['LED Lighting','Velvet Drawers','Shoe Racks','Mirror Panel','Trouser Pull-out'].map(o=>
+            React.createElement('button', {key:o, className:'chip'+(wAcc.includes(o)?' on':''), onClick:()=>toggleArr(wAcc,setWAcc,o)}, o)
+          )
+        )
+      )
+    )
+  );
+
+  const VanityForm = () => React.createElement('div', {className:'calc-form'},
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Vanity Type'),
+      React.createElement('div', {className:'calc-field'},
+        React.createElement('label', {className:'c-lbl'}, 'Configuration'),
+        React.createElement('div', {className:'chip-row'},
+          ['Single Sink','Double Sink','Floating Vanity','Freestanding'].map(o=>
+            React.createElement('button', {key:o, className:'chip'+(vSize===o?' on':''), onClick:()=>setVSize(o)}, o)
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Finishes'),
+      React.createElement('div', {className:'calc-row'},
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Cabinet Finish'),
+          React.createElement('select', {className:'c-sel', value:vFinish, onChange:e=>setVFinish(e.target.value)},
+            ['High-Gloss Lacquer','Matte Lacquer','Veneer','Acrylic','PU Paint'].map(o=>React.createElement('option',{key:o},o))
+          )
+        ),
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Mirror Type'),
+          React.createElement('select', {className:'c-sel', value:vMirror, onChange:e=>setVMirror(e.target.value)},
+            ['LED Backlit','Plain Frameless','Medicine Cabinet','Fog-free LED'].map(o=>React.createElement('option',{key:o},o))
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Basin Style'),
+      React.createElement('div', {className:'calc-field'},
+        React.createElement('div', {className:'chip-row'},
+          ['Under-mount','Vessel','Semi-recessed','Above-counter'].map(o=>
+            React.createElement('button', {key:o, className:'chip'+(vBasin===o?' on':''), onClick:()=>setVBasin(o)}, o)
+          )
+        )
+      )
+    )
+  );
+
+  const TVForm = () => React.createElement('div', {className:'calc-form'},
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Unit Style & Size'),
+      React.createElement('div', {className:'calc-row'},
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Width (ft)'),
+          React.createElement('div', {className:'range-wrap'},
+            React.createElement('input', {type:'range', min:4, max:20, value:tWidth, onChange:e=>setTWidth(+e.target.value)}),
+            React.createElement('div', {className:'range-val'}, tWidth+' ft')
+          )
+        ),
+        React.createElement('div', {className:'calc-field'},
+          React.createElement('label', {className:'c-lbl'}, 'Style'),
+          React.createElement('div', {className:'chip-row'},
+            ['Full Wall','Floating Panel','L-Shape Unit','Entertainment Hub'].map(o=>
+              React.createElement('button', {key:o, className:'chip'+(tStyle===o?' on':''), onClick:()=>setTStyle(o)}, o)
+            )
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Finish'),
+      React.createElement('div', {className:'calc-field'},
+        React.createElement('div', {className:'chip-row'},
+          ['Matte Laminate','High-Gloss','Veneer','PU Paint','Fluted Panel'].map(o=>
+            React.createElement('button', {key:o, className:'chip'+(tFinish===o?' on':''), onClick:()=>setTFinish(o)}, o)
+          )
+        )
+      )
+    ),
+    React.createElement('div', {className:'calc-section'},
+      React.createElement('div', {className:'calc-section-title'}, 'Add-ons'),
+      React.createElement('div', {className:'calc-field'},
+        React.createElement('label', {className:'c-lbl'}, 'Select all that apply'),
+        React.createElement('div', {className:'chip-row'},
+          ['LED Profile Lighting','Fireplace Panel','Wire Management','Display Niches','Speaker Grille'].map(o=>
+            React.createElement('button', {key:o, className:'chip'+(tAcc.includes(o)?' on':''), onClick:()=>toggleArr(tAcc,setTAcc,o)}, o)
+          )
+        )
+      )
+    )
+  );
+
+  const forms = {kitchen:KitchenForm, wardrobe:WardrobeForm, vanity:VanityForm, tvunit:TVForm};
+  const FormComp = forms[tab];
+
+  /* ── WHATSAPP MESSAGE ── */
+  const waMsg = () => {
+    const s = summaries[tab];
+    const lines = s.lines.map(l=>l.label+': '+l.val).join('%0A');
+    const msg = `Hi Innerspace! I used the price calculator for a ${s.title}.%0A${lines}%0AEstimated Budget: ${fmt(s.price)}%0A%0ACan you share an exact quote?`;
+    return `https://wa.me/919306109466?text=${msg}`;
+  };
+
+  return React.createElement('div', {className:'page'},
+    React.createElement(BackButton, {setPage}),
+    React.createElement('div', {className:'page-hdr'},
+      React.createElement('div', {className:'sec-lbl'}, 'Instant Estimate'),
+      React.createElement('h1', null, 'Price ', React.createElement('em', null, 'Calculator'))
+    ),
+    /* TABS */
+    React.createElement('div', {className:'calc-tabs'},
+      TABS.map(t => React.createElement('button', {
+        key:t.id, className:'calc-tab'+(tab===t.id?' on':''),
+        onClick:()=>setTab(t.id)
+      }, t.label))
+    ),
+    /* BODY */
+    React.createElement('div', {className:'calc-body'},
+      /* LEFT — FORM */
+      React.createElement(FormComp, null),
+      /* RIGHT — SUMMARY */
+      React.createElement('div', {className:'calc-summary'},
+        React.createElement('div', {className:'sum-head'},
+          React.createElement('div', {className:'sum-head-lbl'}, 'Estimated Cost'),
+          React.createElement('div', {className:'sum-head-title'}, sum.title)
+        ),
+        React.createElement('div', {className:'sum-body'},
+          sum.lines.map(l => React.createElement('div', {key:l.label, className:'sum-line'},
+            React.createElement('span', null, l.label),
+            React.createElement('strong', null, l.val)
+          ))
+        ),
+        React.createElement('div', {className:'sum-total'},
+          React.createElement('span', {className:'sum-total-lbl'}, 'Estimate'),
+          React.createElement('span', {className:'sum-total-val'}, fmt(sum.price))
+        ),
+        React.createElement('div', {className:'sum-note'}, 'This is an indicative estimate. Final pricing depends on site measurements, hardware selection, and installation requirements.'),
+        React.createElement('div', {className:'sum-actions'},
+          React.createElement('a', {className:'btn-gold', href:waMsg(), target:'_blank', rel:'noreferrer', style:{justifyContent:'center',textDecoration:'none',display:'flex',alignItems:'center',gap:'.6rem'}}, 'Get Exact Quote on WhatsApp →'),
+          React.createElement('button', {className:'btn-outline', onClick:()=>setPage('contact'), style:{justifyContent:'center'}}, 'Book a Consultation')
+        ),
+        React.createElement('div', {className:'sum-disclaimer'}, 'Prices shown are approximate market rates for Delhi NCR. GST & installation charges extra.')
       )
     ),
     React.createElement(Footer, {setPage})
@@ -1160,9 +1615,10 @@ function App() {
       ? React.createElement(MobileTopbar, {page, setPage:go, open:mobOpen, setOpen:setMobOpen})
       : React.createElement(Sidebar,      {page, setPage:go, open:railOpen, setOpen:setRailOpen}),
     React.createElement('div', {id:'app-inner', className:'main'+((!isMobile)?' shifted':'')},
-      (page==='home' || page==='faq') && React.createElement(Home,      {setPage:go}),
-      page==='catalogue' && React.createElement(Catalogue, {setPage:go}),
-      page==='contact'   && React.createElement(Contact,   {setPage:go})
+      (page==='home' || page==='faq') && React.createElement(Home,           {setPage:go}),
+      page==='catalogue'  && React.createElement(Catalogue,      {setPage:go}),
+      page==='calculator' && React.createElement(PriceCalculator,{setPage:go}),
+      page==='contact'    && React.createElement(Contact,         {setPage:go})
     ),
     React.createElement('a', {className:'wa-fab', href:WA, target:'_blank', rel:'noreferrer', title:'WhatsApp Us'},
       React.createElement('svg', {viewBox:'0 0 24 24'},
