@@ -311,10 +311,16 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .faq-grid{position:relative;display:grid;grid-template-columns:minmax(220px,.72fr) 1.28fr;gap:3rem;align-items:start}
 .faq-note{border-left:1px solid rgba(201,168,76,.42);padding-left:1.4rem;color:var(--gray);font-size:.78rem;line-height:1.9}
 .faq-list{display:flex;flex-direction:column;border-top:.5px solid rgba(201,168,76,.16)}
-.faq-item{display:grid;grid-template-columns:64px 1fr;gap:1.3rem;padding:1.45rem 0;border-bottom:.5px solid rgba(201,168,76,.16)}
+.faq-item{border-bottom:.5px solid rgba(201,168,76,.16)}
+.faq-item-hdr{display:grid;grid-template-columns:64px 1fr auto;gap:1.3rem;padding:1.45rem 0;cursor:pointer;align-items:center;transition:opacity .2s}
+.faq-item-hdr:hover{opacity:.85}
 .faq-num{font-family:'Cormorant Garamond',serif;color:rgba(201,168,76,.62);font-size:1.3rem;line-height:1}
-.faq-q{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--white);margin-bottom:.55rem;line-height:1.55}
-.faq-a{font-size:.74rem;line-height:1.85;color:var(--gray)}
+.faq-q{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--white);line-height:1.55}
+.faq-chevron{width:18px;height:18px;flex-shrink:0;transition:transform .35s var(--ease);color:rgba(201,168,76,.5)}
+.faq-chevron.open{transform:rotate(180deg)}
+.faq-body{overflow:hidden;max-height:0;transition:max-height .4s var(--ease),padding .3s}
+.faq-body.open{max-height:200px}
+.faq-a{font-size:.74rem;line-height:1.85;color:var(--gray);padding:0 0 1.4rem 5.3rem}
 @media(max-width:860px){.faq-grid{grid-template-columns:1fr;gap:2rem}.faq-head{margin-bottom:2rem}}
 @media(max-width:520px){.faq-item{grid-template-columns:1fr;gap:.5rem}.faq-num{font-size:1.05rem}}
 
@@ -1071,7 +1077,7 @@ function useReveal() {
   useEffect(() => {
     const els = document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale');
     const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); },[]);
     }, {threshold:0.05, rootMargin:'0px 0px -20px 0px'});
     els.forEach(el => {
       const rect = el.getBoundingClientRect();
@@ -1238,6 +1244,7 @@ function ProcessVideo() {
 /* ── HOME ── */
 function Home({setPage}) {
   useReveal();
+  const [openFaq, setOpenFaq] = useState(null);
   const v1 = useRef(null), v2 = useRef(null);
   return React.createElement('div', {className:'page'},
     /* HERO */
@@ -1406,16 +1413,28 @@ function Home({setPage}) {
       React.createElement('div', {className:'faq-grid'},
         React.createElement('p', {className:'faq-note reveal'}, 'A few common details clients usually ask about before starting an interior, kitchen, or wardrobe project. These answers can be updated with exact policies, timelines, and pricing later.'),
         React.createElement('div', {className:'faq-list'},
-          FAQS.map((item,i) =>
-            React.createElement('div', {key:item.q, className:'faq-item reveal', style:{transitionDelay:i*0.08+'s'}},
-              React.createElement('div', {className:'faq-num'}, String(i + 1).padStart(2, '0')),
-              React.createElement('div', null,
-                React.createElement('h3', {className:'faq-q'}, item.q),
-                React.createElement('p', {className:'faq-a'}, item.a)
-              )
-            )
-          )
+  FAQS.map((item,i) =>
+    React.createElement('div', {key:item.q, className:'faq-item'},
+      React.createElement('div', {
+        className:'faq-item-hdr',
+        onClick:()=>setOpenFaq(openFaq===i ? null : i)
+      },
+        React.createElement('div', {className:'faq-num'}, String(i+1).padStart(2,'0')),
+        React.createElement('h3', {className:'faq-q'}, item.q),
+        React.createElement('svg', {
+          className:'faq-chevron'+(openFaq===i?' open':''),
+          viewBox:'0 0 24 24', fill:'none',
+          stroke:'currentColor', strokeWidth:'1.5'
+        },
+          React.createElement('polyline', {points:'6 9 12 15 18 9'})
         )
+      ),
+      React.createElement('div', {className:'faq-body'+(openFaq===i?' open':'')},
+        React.createElement('p', {className:'faq-a'}, item.a)
+      )
+    )
+  )
+)
       )
     ),
     /* CTA */
