@@ -12,6 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <!-- Elfsight loaded here, outside React/Babel -->
 <script src="https://elfsightcdn.com/platform.js" async></script>
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- React + Babel -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -165,6 +167,15 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
   .mob-drawer,.mob-overlay,.topbar{display:none !important}
 }
 
+/* ─── PREMIUM SCROLL PROGRESS BAR ─── */
+#scroll-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));width:0%;z-index:9998;transition:width .05s linear;box-shadow:0 0 8px rgba(201,168,76,.6)}
+
+/* ─── NOISE OVERLAY ─── */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.022;pointer-events:none;z-index:9997;mix-blend-mode:overlay}
+
+/* ─── AMBIENT 3D CANVAS ─── */
+#ambient-canvas{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.55}
+
 /* ─── ANIMATIONS ─── */
 @keyframes fadeSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
 @keyframes up{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
@@ -173,49 +184,114 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 @keyframes cube{0%{transform:rotateX(0) rotateY(0)}100%{transform:rotateX(360deg) rotateY(360deg)}}
 @keyframes wapulse{0%,100%{box-shadow:0 4px 18px rgba(37,211,102,.4)}50%{box-shadow:0 4px 26px rgba(37,211,102,.7),0 0 0 8px rgba(37,211,102,.08)}}
 @keyframes floatup{0%{opacity:0;transform:translateY(0) translateX(0)}10%{opacity:.32}90%{opacity:.07}100%{opacity:0;transform:translateY(-100vh) translateX(var(--drift))}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes borderGlow{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0)}50%{box-shadow:0 0 20px 2px rgba(201,168,76,.18)}}
+@keyframes lineGrow{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1)}}
 
 .page{animation:fadeSlide .42s ease}
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .75s ease,transform .75s ease}
-.reveal.in{opacity:1;transform:none}
 
-/* ─── HERO ─── */
-.hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45}
-.hero-ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,8,8,.3) 0%,rgba(8,8,8,.55) 55%,var(--black) 100%)}
+/* ─── PREMIUM REVEAL SYSTEM ─── */
+.reveal{opacity:0;transform:translateY(36px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal-left{opacity:0;transform:translateX(-48px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1)}
+.reveal-left.in{opacity:1;transform:none}
+.reveal-right{opacity:0;transform:translateX(48px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1)}
+.reveal-right.in{opacity:1;transform:none}
+.reveal-scale{opacity:0;transform:scale(0.92);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1)}
+.reveal-scale.in{opacity:1;transform:scale(1)}
+
+/* ─── GOLD SHIMMER TEXT ─── */
+.shimmer-text{background:linear-gradient(90deg,var(--gold) 0%,var(--gold-light) 40%,#FFF8E1 50%,var(--gold-light) 60%,var(--gold) 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite}
+
+/* ─── STAT COUNTER ANIMATION ─── */
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;color:var(--gold);line-height:1;transition:transform .3s}
+.stat-c:hover .stat-n{transform:scale(1.08)}
+
+/* ─── MAGNETIC BUTTONS ─── */
+.btn-gold,.btn-outline,.h-cta{transition:background .3s,color .3s,transform .2s,box-shadow .3s}
+.btn-gold:hover{box-shadow:0 8px 32px rgba(201,168,76,.35)}
+.btn-outline:hover{box-shadow:0 8px 32px rgba(201,168,76,.2)}
+
+/* ─── SECTION DIVIDER LINES ─── */
+.gold-rule{width:48px;height:1px;background:var(--gold);margin:1.2rem 0;display:block}
+.gold-rule.center{margin:1.2rem auto}
+
+/* ─── PARALLAX LAYERS ─── */
+.parallax-slow{will-change:transform}
+.parallax-mid{will-change:transform}
+
+/* ─── HERO ENHANCEMENTS ─── */
 .hero-content{position:relative;z-index:2;text-align:center;padding:0 1.5rem}
 .h-tag{font-size:.58rem;letter-spacing:.45em;text-transform:uppercase;color:var(--gold);margin-bottom:1.3rem;animation:up .9s .4s both}
 .h-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,8vw,6.5rem);font-weight:300;line-height:1.05;margin-bottom:1.6rem;animation:up .9s .7s both}
 .h-title em{font-style:italic;color:var(--gold)}
 .h-sub{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);margin-bottom:2.5rem;animation:up .9s 1s both}
-.h-cta{display:inline-flex;align-items:center;gap:.8rem;border:1px solid var(--gold);padding:.85rem 2rem;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);cursor:pointer;background:none;transition:background .3s,color .3s;animation:up .9s 1.3s both;font-family:'Montserrat',sans-serif}
-.h-cta:hover{background:var(--gold);color:var(--black)}
+.h-cta{display:inline-flex;align-items:center;gap:.8rem;border:1px solid var(--gold);padding:.85rem 2rem;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);cursor:pointer;background:none;animation:up .9s 1.3s both;font-family:'Montserrat',sans-serif;position:relative;overflow:hidden}
+.h-cta::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .4s cubic-bezier(0.16,1,0.3,1);z-index:-1}
+.h-cta:hover::before{transform:translateX(0)}
+.h-cta:hover{color:var(--black)}
 .h-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.4rem;font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(245,240,232,.32)}
 .h-scroll-line{width:1px;height:34px;background:linear-gradient(180deg,var(--gold),transparent);animation:growLine 1.6s infinite}
-@media(max-width:540px){.h-title{font-size:2.6rem}.h-sub{font-size:.58rem}}
+/* Hero corner ornaments */
+.hero-corner{position:absolute;z-index:3;width:40px;height:40px;opacity:.35}
+.hero-corner.tl{top:2rem;left:2rem;border-top:1px solid var(--gold);border-left:1px solid var(--gold)}
+.hero-corner.tr{top:2rem;right:2rem;border-top:1px solid var(--gold);border-right:1px solid var(--gold)}
+.hero-corner.bl{bottom:4rem;left:2rem;border-bottom:1px solid var(--gold);border-left:1px solid var(--gold)}
+.hero-corner.br{bottom:4rem;right:2rem;border-bottom:1px solid var(--gold);border-right:1px solid var(--gold)}
+@media(max-width:540px){.h-title{font-size:2.6rem}.h-sub{font-size:.58rem}.hero-corner{width:24px;height:24px}}
 
-/* ─── MARQUEE ─── */
-.mq-wrap{overflow:hidden;border-top:.5px solid rgba(201,168,76,.14);border-bottom:.5px solid rgba(201,168,76,.14);padding:1rem 0;background:var(--black-mid)}
+/* ─── SECTION TITLE UPGRADE ─── */
+.sec-lbl{font-size:.56rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem;display:flex;align-items:center;gap:.8rem}
+.sec-lbl::before{content:'';display:inline-block;width:20px;height:.5px;background:var(--gold)}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3.5vw,3rem);font-weight:300;line-height:1.2;margin-bottom:1.1rem}
+.sec-title em{font-style:italic;color:var(--gold)}
+
+/* ─── SERVICE CARD UPGRADE ─── */
+.svc-card{border:.5px solid rgba(201,168,76,.11);padding:2rem;background:var(--black-card);cursor:pointer;transition:transform .5s cubic-bezier(0.16,1,0.3,1),border-color .3s,box-shadow .4s;position:relative;overflow:hidden}
+.svc-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at center,rgba(201,168,76,.06) 0%,transparent 60%);opacity:0;transition:opacity .5s;pointer-events:none}
+.svc-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transition:width .5s}
+.svc-card:hover{transform:translateY(-8px) scale(1.01);border-color:rgba(201,168,76,.45);box-shadow:0 24px 48px rgba(0,0,0,.5),0 0 0 .5px rgba(201,168,76,.15)}
+.svc-card:hover::before{opacity:1}
+.svc-card:hover::after{width:100%}
+
+/* ─── STAT CARD UPGRADE ─── */
+.stat-c{border:.5px solid rgba(201,168,76,.14);padding:1.7rem;text-align:center;background:var(--black-card);position:relative;overflow:hidden;transition:border-color .4s,transform .4s cubic-bezier(0.16,1,0.3,1),box-shadow .4s}
+.stat-c::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.07),transparent);opacity:0;transition:opacity .4s}
+.stat-c::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:1px;background:var(--gold);transition:width .4s}
+.stat-c:hover::before{opacity:1}
+.stat-c:hover::after{width:80%}
+.stat-c:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4)}
+
+/* ─── PROJECT CARD UPGRADE ─── */
+.proj-card{border:.5px solid rgba(201,168,76,.1);overflow:hidden;cursor:pointer;transition:border-color .4s,transform .5s cubic-bezier(0.16,1,0.3,1),box-shadow .4s;position:relative;background:var(--black-card)}
+.proj-card:hover{border-color:rgba(201,168,76,.5);transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,.6)}
+
+/* ─── MARQUEE UPGRADE ─── */
+.mq-wrap{overflow:hidden;border-top:.5px solid rgba(201,168,76,.14);border-bottom:.5px solid rgba(201,168,76,.14);padding:1rem 0;background:var(--black-mid);position:relative}
+.mq-wrap::before,.mq-wrap::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none}
+.mq-wrap::before{left:0;background:linear-gradient(90deg,var(--black-mid),transparent)}
+.mq-wrap::after{right:0;background:linear-gradient(-90deg,var(--black-mid),transparent)}
 .mq-track{display:flex;gap:3rem;animation:marquee 28s linear infinite;white-space:nowrap;width:max-content}
-.mq-item{font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(201,168,76,.62);display:flex;align-items:center;gap:.7rem}
+.mq-item{font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(201,168,76,.62);display:flex;align-items:center;gap:.7rem;transition:color .3s}
 .mq-item::after{content:'◆';font-size:.32rem;color:var(--gold)}
+
+/* ─── CURSOR UPGRADE ─── */
+.cur,.cur-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+.cur{width:6px;height:6px;background:var(--gold);transition:transform .08s,width .2s,height .2s;mix-blend-mode:difference}
+.cur-ring{width:36px;height:36px;border:1px solid rgba(201,168,76,.6);opacity:.7;transition:width .35s cubic-bezier(0.16,1,0.3,1),height .35s cubic-bezier(0.16,1,0.3,1),opacity .35s,left .12s,top .12s}
+.cur-ring.big{width:64px;height:64px;opacity:.25;border-color:var(--gold)}
+.cur-ring.clicking{width:20px;height:20px;opacity:.9}
+@media(hover:none){.cur,.cur-ring{display:none}body{cursor:auto}}
 
 /* ─── SECTIONS ─── */
 .sec{padding:6rem 4rem}
 @media(max-width:768px){.sec{padding:4rem 1.5rem}}
-.sec-lbl{font-size:.56rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem}
-.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,3.5vw,3rem);font-weight:300;line-height:1.2;margin-bottom:1.1rem}
-.sec-title em{font-style:italic;color:var(--gold)}
 
 /* ─── ABOUT ─── */
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
 @media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:3rem}}
 .about-p{font-size:.8rem;line-height:2;color:var(--gray);margin-bottom:1.1rem}
 .stats-g{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
-.stat-c{border:.5px solid rgba(201,168,76,.14);padding:1.7rem;text-align:center;background:var(--black-card);position:relative;overflow:hidden;transition:border-color .3s}
-.stat-c::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.05),transparent);opacity:0;transition:opacity .3s}
-.stat-c:hover::before{opacity:1}
-.stat-c:hover{border-color:var(--gold)}
-.stat-n{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;color:var(--gold);line-height:1}
 .stat-l{font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,240,232,.42);margin-top:.4rem}
 
 /* ─── SERVICES ─── */
@@ -223,11 +299,8 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:3rem}
 @media(max-width:880px){.svc-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.svc-grid{grid-template-columns:1fr}}
-.svc-card{border:.5px solid rgba(201,168,76,.11);padding:2rem;background:var(--black-card);cursor:pointer;transition:transform .4s var(--ease),border-color .3s;position:relative;overflow:hidden}
-.svc-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width .4s}
-.svc-card:hover{transform:translateY(-5px);border-color:rgba(201,168,76,.45)}
-.svc-card:hover::after{width:100%}
-.svc-icon{font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:rgba(201,168,76,.17);margin-bottom:1.1rem;line-height:1}
+.svc-icon{font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:rgba(201,168,76,.17);margin-bottom:1.1rem;line-height:1;transition:color .4s,transform .4s}
+.svc-card:hover .svc-icon{color:rgba(201,168,76,.55);transform:scale(1.1) translateY(-2px)}
 .svc-name{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.7rem}
 .svc-desc{font-size:.72rem;line-height:1.8;color:var(--gray)}
 
@@ -470,7 +543,367 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .sum-disclaimer{font-size:.56rem;color:rgba(245,240,232,.26);line-height:1.7;text-align:center;padding:.5rem 1.6rem 1.4rem}
 .calc-empty{text-align:center;padding:3rem;color:rgba(245,240,232,.25);font-family:'Cormorant Garamond',serif;font-size:1.1rem}
 
-/* ─── BACK BUTTON ─── */
+/* ─── 3D VISUALIZER ─── */
+.viz-page{background:var(--black);min-height:100vh}
+.viz-tabs{display:flex;gap:0;border-bottom:.5px solid rgba(201,168,76,.16);overflow-x:auto;scrollbar-width:none;background:var(--black-mid)}
+.viz-tabs::-webkit-scrollbar{display:none}
+.viz-tab{flex-shrink:0;padding:.9rem 2rem;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,240,232,.38);transition:color .25s,border-color .25s;white-space:nowrap}
+.viz-tab:hover{color:var(--white)}
+.viz-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.viz-layout{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 54px - 110px);min-height:520px}
+@media(max-width:900px){.viz-layout{grid-template-columns:1fr;height:auto}}
+.viz-canvas-wrap{position:relative;background:var(--black);overflow:hidden;cursor:grab}
+.viz-canvas-wrap:active{cursor:grabbing}
+.viz-canvas-wrap canvas{display:block;width:100%!important;height:100%!important}
+.viz-hint{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);font-size:.48rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(201,168,76,.35);pointer-events:none;white-space:nowrap;background:rgba(8,8,8,.6);padding:.4rem .9rem;border:.5px solid rgba(201,168,76,.12);backdrop-filter:blur(4px)}
+.viz-controls{background:var(--black-mid);border-left:.5px solid rgba(201,168,76,.13);overflow-y:auto;display:flex;flex-direction:column}
+@media(max-width:900px){.viz-controls{border-left:none;border-top:.5px solid rgba(201,168,76,.13);max-height:380px}}
+.viz-ctrl-head{padding:1.2rem 1.4rem .8rem;border-bottom:.5px solid rgba(201,168,76,.1)}
+.viz-ctrl-head-lbl{font-size:.48rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(201,168,76,.55);margin-bottom:.2rem}
+.viz-ctrl-head-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--white)}
+.viz-ctrl-body{padding:.8rem 1.4rem;display:flex;flex-direction:column;gap:1.1rem;flex:1}
+.viz-group{display:flex;flex-direction:column;gap:.45rem}
+.viz-group-lbl{font-size:.48rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(201,168,76,.5)}
+.viz-chips{display:flex;flex-wrap:wrap;gap:.38rem}
+.viz-chip{padding:.3rem .75rem;border:.5px solid rgba(201,168,76,.18);background:none;color:rgba(245,240,232,.42);font-family:'Montserrat',sans-serif;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .22s;border-radius:2px}
+.viz-chip:hover{border-color:rgba(201,168,76,.45);color:var(--white)}
+.viz-chip.on{border-color:var(--gold);background:rgba(201,168,76,.1);color:var(--gold)}
+.viz-swatch-row{display:flex;flex-wrap:wrap;gap:.4rem;max-height:140px;overflow-y:auto;padding:.2rem .1rem .4rem;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,.3) transparent}
+.viz-swatch-row::-webkit-scrollbar{width:3px}
+.viz-swatch-row::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:2px}
+.viz-swatch{width:26px;height:26px;border-radius:3px;cursor:pointer;border:2px solid transparent;transition:transform .2s,border-color .2s;position:relative;flex-shrink:0}
+.viz-swatch:hover{transform:scale(1.2);z-index:10}
+.viz-swatch:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:rgba(8,8,8,.92);color:var(--gold);font-family:'Montserrat',sans-serif;font-size:.42rem;letter-spacing:.1em;white-space:nowrap;padding:.25rem .5rem;border:.5px solid rgba(201,168,76,.3);pointer-events:none;z-index:20;border-radius:2px}
+.viz-swatch.on{border-color:var(--gold);transform:scale(1.12)}
+.viz-swatch-label{display:none}
+.viz-slider-row{display:flex;align-items:center;gap:.8rem}
+.viz-slider-val{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--gold);min-width:2.5rem;text-align:right}
+.viz-ctrl-footer{padding:1rem 1.4rem 1.4rem;border-top:.5px solid rgba(201,168,76,.1);display:flex;flex-direction:column;gap:.6rem;margin-top:auto}
+.viz-reset{background:none;border:.5px solid rgba(201,168,76,.2);color:rgba(245,240,232,.35);padding:.5rem;font-family:'Montserrat',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .25s;width:100%}
+.viz-reset:hover{border-color:var(--gold);color:var(--gold)}
+/* ══════════════════════════════════════
+   PREMIUM UPGRADE — SCROLL 3D & LUXURY
+══════════════════════════════════════ */
+
+/* ─── SCROLL 3D CANVAS (fixed bg) ─── */
+#scroll-canvas{
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  pointer-events:none;
+  z-index:0;
+  opacity:0.55;
+}
+
+/* Make all page content sit above canvas */
+.main > *{position:relative;z-index:1}
+.rail{z-index:500}
+.topbar{z-index:500}
+
+/* ─── PREMIUM REVEAL ANIMATIONS ─── */
+.reveal{
+  opacity:0;
+  transform:translateY(40px);
+  transition:opacity .9s cubic-bezier(0.16,1,0.3,1), transform .9s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.in{opacity:1;transform:none}
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1)}
+.reveal-left.in{opacity:1;transform:none}
+.reveal-right{opacity:0;transform:translateX(40px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1)}
+.reveal-right.in{opacity:1;transform:none}
+.reveal-scale{opacity:0;transform:scale(0.92);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1)}
+.reveal-scale.in{opacity:1;transform:scale(1)}
+
+/* ─── PREMIUM HERO UPGRADES ─── */
+.hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hero::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 60%, rgba(201,168,76,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 30%, rgba(201,168,76,0.04) 0%, transparent 65%);
+  pointer-events:none;z-index:2;
+  animation:heroGlow 8s ease-in-out infinite alternate;
+}
+@keyframes heroGlow{
+  0%{opacity:.6}100%{opacity:1}
+}
+.h-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.8rem,8vw,6.5rem);
+  font-weight:300;line-height:1.05;margin-bottom:1.6rem;
+  animation:up .9s .7s both;
+  text-shadow:0 2px 40px rgba(0,0,0,0.6);
+}
+.h-title em{font-style:italic;color:var(--gold);text-shadow:0 0 60px rgba(201,168,76,0.3)}
+
+/* Animated line under hero tag */
+.h-tag{position:relative;display:inline-block}
+.h-tag::after{
+  content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  width:0;height:.5px;background:var(--gold);
+  animation:tagLine 1.2s 1s forwards;
+}
+@keyframes tagLine{to{width:100%}}
+
+/* ─── GOLD DIVIDER LINE ─── */
+.gold-divider{
+  width:100%;height:.5px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.5),transparent);
+  margin:0;
+}
+
+/* ─── STAT COUNTER UPGRADE ─── */
+.stat-c{
+  border:.5px solid rgba(201,168,76,.14);padding:1.7rem;text-align:center;
+  background:var(--black-card);position:relative;overflow:hidden;
+  transition:border-color .4s,transform .4s cubic-bezier(0.16,1,0.3,1),box-shadow .4s;
+}
+.stat-c::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(201,168,76,.06),transparent);
+  opacity:0;transition:opacity .4s;
+}
+.stat-c::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  transform:scaleX(0);transition:transform .5s cubic-bezier(0.16,1,0.3,1);
+}
+.stat-c:hover{border-color:rgba(201,168,76,.5);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 0 .5px rgba(201,168,76,.1)}
+.stat-c:hover::before{opacity:1}
+.stat-c:hover::after{transform:scaleX(1)}
+
+/* ─── SERVICE CARD UPGRADE ─── */
+.svc-card{
+  border:.5px solid rgba(201,168,76,.11);padding:2rem;background:var(--black-card);
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .5s cubic-bezier(0.16,1,0.3,1),border-color .4s,box-shadow .4s;
+}
+.svc-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 120%,rgba(201,168,76,.09),transparent 65%);
+  opacity:0;transition:opacity .4s;
+}
+.svc-card:hover{transform:translateY(-7px);border-color:rgba(201,168,76,.5);box-shadow:0 20px 50px rgba(0,0,0,0.5)}
+.svc-card:hover::before{opacity:1}
+.svc-icon{
+  font-family:'Cormorant Garamond',serif;font-size:2.4rem;
+  color:rgba(201,168,76,.17);margin-bottom:1.1rem;line-height:1;
+  transition:color .4s,transform .4s cubic-bezier(0.16,1,0.3,1);
+}
+.svc-card:hover .svc-icon{color:rgba(201,168,76,.55);transform:scale(1.08) translateY(-2px)}
+
+/* ─── PARALLAX SECTION TITLES ─── */
+.sec-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.7rem,3.5vw,3rem);
+  font-weight:300;line-height:1.2;margin-bottom:1.1rem;
+  background:linear-gradient(135deg, var(--white) 0%, rgba(245,240,232,.7) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.sec-title em{font-style:italic;-webkit-text-fill-color:var(--gold);background:none}
+
+/* ─── PREMIUM MARQUEE ─── */
+.mq-wrap{
+  overflow:hidden;padding:1.1rem 0;
+  background:linear-gradient(90deg,var(--black) 0%,var(--black-mid) 50%,var(--black) 100%);
+  border-top:.5px solid rgba(201,168,76,.18);
+  border-bottom:.5px solid rgba(201,168,76,.18);
+  position:relative;
+}
+.mq-wrap::before,.mq-wrap::after{
+  content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none;
+}
+.mq-wrap::before{left:0;background:linear-gradient(90deg,var(--black),transparent)}
+.mq-wrap::after{right:0;background:linear-gradient(270deg,var(--black),transparent)}
+
+/* ─── GLASS CARD EFFECT (about section) ─── */
+.about-glass{
+  background:rgba(20,20,20,.6);
+  border:.5px solid rgba(201,168,76,.15);
+  backdrop-filter:blur(20px);
+  padding:2.5rem;
+  position:relative;overflow:hidden;
+}
+.about-glass::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:.5px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.5),transparent);
+}
+
+/* ─── HORIZONTAL SCROLL NUMBER COUNTER ─── */
+@keyframes countUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
+.stat-n{
+  font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;
+  color:var(--gold);line-height:1;
+  transition:transform .3s;
+}
+
+/* ─── PREMIUM CURSOR UPGRADE ─── */
+.cur{
+  width:7px;height:7px;background:var(--gold);
+  transition:transform .08s,width .3s,height .3s,background .3s;
+  mix-blend-mode:difference;
+}
+.cur.hovering{width:5px;height:5px;background:var(--white)}
+.cur-ring{
+  width:34px;height:34px;border:1px solid rgba(201,168,76,.6);
+  transition:width .35s cubic-bezier(0.16,1,0.3,1),height .35s cubic-bezier(0.16,1,0.3,1),
+             opacity .35s,left .1s,top .1s,border-color .3s;
+}
+.cur-ring.hovering{width:50px;height:50px;border-color:rgba(201,168,76,.3)}
+
+/* ─── SECTION BACKGROUND DEPTH ─── */
+.sec{padding:7rem 4rem;position:relative}
+@media(max-width:768px){.sec{padding:4.5rem 1.5rem}}
+
+/* ─── PREMIUM BUTTON STATES ─── */
+.btn-gold{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:.6rem;
+  background:var(--gold);color:var(--black);
+  padding:.9rem 2.4rem;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;
+  font-weight:500;cursor:pointer;border:none;
+  font-family:'Montserrat',sans-serif;
+  transition:background .3s,transform .25s cubic-bezier(0.16,1,0.3,1),box-shadow .3s;
+}
+.btn-gold::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.2),transparent);
+  transform:translateX(-100%) skewX(-15deg);
+  transition:transform .5s cubic-bezier(0.16,1,0.3,1);
+}
+.btn-gold:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 8px 30px rgba(201,168,76,.4)}
+.btn-gold:hover::before{transform:translateX(200%) skewX(-15deg)}
+.btn-outline{
+  display:inline-flex;align-items:center;gap:.6rem;
+  border:1px solid rgba(201,168,76,.6);color:var(--gold);
+  padding:.9rem 2.4rem;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;
+  cursor:pointer;background:none;
+  transition:background .3s,color .3s,transform .25s cubic-bezier(0.16,1,0.3,1),border-color .3s,box-shadow .3s;
+  font-family:'Montserrat',sans-serif;font-weight:300;text-decoration:none;
+  position:relative;overflow:hidden;
+}
+.btn-outline::before{
+  content:'';position:absolute;inset:0;background:var(--gold);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s cubic-bezier(0.16,1,0.3,1);
+}
+.btn-outline:hover{color:var(--black);border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 30px rgba(201,168,76,.2)}
+.btn-outline:hover::before{transform:scaleX(1)}
+.btn-outline:hover span,.btn-outline:hover{z-index:1}
+.btn-outline > *{position:relative;z-index:1}
+
+/* ─── SCROLL PROGRESS BAR ─── */
+.scroll-progress{
+  position:fixed;top:0;left:0;height:1.5px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  z-index:9998;width:0%;
+  transition:width .1s linear;
+  box-shadow:0 0 8px rgba(201,168,76,.6);
+}
+@media(max-width:768px){.scroll-progress{top:54px}}
+
+/* ─── FLOATING GOLD ORBS ─── */
+.orb{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(201,168,76,0.08) 0%,transparent 70%);
+  animation:orbFloat var(--orb-dur) ease-in-out infinite alternate;
+}
+@keyframes orbFloat{
+  0%{transform:translate(0,0) scale(1)}
+  100%{transform:translate(var(--orb-dx),var(--orb-dy)) scale(1.1)}
+}
+
+/* ─── PREMIUM SECTION LABEL ─── */
+.sec-lbl{
+  font-size:.54rem;letter-spacing:.45em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:.8rem;
+  position:relative;display:inline-block;
+}
+.sec-lbl::before{
+  content:'';position:absolute;left:-1.2rem;top:50%;transform:translateY(-50%);
+  width:.5rem;height:.5px;background:var(--gold);opacity:.7;
+}
+
+/* ─── ABOUT SECTION PREMIUM ─── */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center}
+@media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:3rem}}
+.about-p{font-size:.82rem;line-height:2.1;color:var(--gray);margin-bottom:1.2rem}
+
+/* ─── COUNTER ANIMATION ─── */
+.stat-n.counting{animation:countPop .4s cubic-bezier(0.16,1,0.3,1)}
+@keyframes countPop{0%{transform:scale(0.8)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+/* ─── PROCESS STEP PREMIUM ─── */
+.process-step{
+  display:flex;gap:1.4rem;align-items:flex-start;
+  padding:1rem 1rem 1rem 0;
+  border-left:1px solid rgba(201,168,76,.08);
+  padding-left:1.2rem;margin-left:.2rem;
+  transition:border-color .4s;
+  position:relative;
+}
+.process-step::before{
+  content:'';position:absolute;left:-1px;top:0;height:0;width:1px;
+  background:var(--gold);
+  transition:height .6s cubic-bezier(0.16,1,0.3,1);
+}
+.process-step.in::before{height:100%}
+.process-step:hover{border-color:rgba(201,168,76,.3)}
+
+/* ─── GOLD LINE SEPARATOR ─── */
+.gold-sep{
+  width:60px;height:.5px;background:var(--gold);
+  margin:1.2rem 0;opacity:.6;
+}
+
+/* ─── CTA PREMIUM ─── */
+.cta-sec{
+  text-align:center;position:relative;overflow:hidden;padding:8rem 4rem;
+  background:var(--black-mid);
+}
+.cta-sec::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 50%,rgba(201,168,76,.08),transparent 65%),
+    radial-gradient(ellipse 40% 40% at 20% 80%,rgba(201,168,76,.04),transparent 60%);
+  pointer-events:none;animation:ctaGlow 6s ease-in-out infinite alternate;
+}
+@keyframes ctaGlow{0%{opacity:.7}100%{opacity:1}}
+.cta-sec::after{
+  content:'';position:absolute;top:0;left:10%;right:10%;height:.5px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);
+}
+
+/* ─── FOOTER PREMIUM ─── */
+footer{
+  background:linear-gradient(180deg,var(--black-mid) 0%,var(--black) 100%);
+  border-top:.5px solid rgba(201,168,76,.18);padding:4rem 4rem 2.5rem;
+  position:relative;
+}
+footer::before{
+  content:'';position:absolute;top:0;left:5%;right:5%;height:.5px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.35),transparent);
+}
+
+/* ─── SMOOTH PAGE TRANSITIONS ─── */
+.page{animation:pageIn .55s cubic-bezier(0.16,1,0.3,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* ─── PREMIUM SCROLLBAR ─── */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:rgba(201,168,76,.4);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+
+/* ─── NOISE TEXTURE OVERLAY ─── */
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9997;opacity:.4;
+}
+
+/* keep back button etc above noise */
+.back-bar,.wa-fab,.cur,.cur-ring,.scroll-progress{z-index:9998}
+
 .back-btn{
   display:inline-flex;align-items:center;gap:.55rem;
   background:none;border:none;cursor:pointer;
@@ -500,6 +933,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 </style>
 </head>
 <body>
+<div id="scroll-bar"></div>
+<canvas id="ambient-canvas"></canvas>
 <div id="app"></div>
 
 <script type="text/babel">
@@ -551,6 +986,7 @@ const NAV = [
   {id:'home',       icon:'◈', label:'Home'},
   {id:'catalogue',  icon:'◰', label:'Catalogue'},
   {id:'calculator', icon:'◎', label:'Estimate'},
+  {id:'visualizer', icon:'◉', label:'Visualizer'},
   {id:'faq',        icon:'?', label:'FAQ'},
   {id:'contact',    icon:'◇', label:'Contact'},
 ];
@@ -569,15 +1005,41 @@ function BackButton({setPage}) {
 
 /* ── CURSOR ── */
 function Cursor() {
-  const curRef = useRef(null);
+  const curRef  = useRef(null);
   const ringRef = useRef(null);
   useEffect(() => {
+    let mx=0,my=0,rx=0,ry=0;
     const onMove = e => {
-      if (curRef.current)  { curRef.current.style.left  = e.clientX + 'px'; curRef.current.style.top  = e.clientY + 'px'; }
-      if (ringRef.current) { ringRef.current.style.left = e.clientX + 'px'; ringRef.current.style.top = e.clientY + 'px'; }
+      mx=e.clientX; my=e.clientY;
+      if(curRef.current){ curRef.current.style.left=mx+'px'; curRef.current.style.top=my+'px'; }
     };
+    // Smooth ring follow
+    let raf;
+    const lerp=(a,b,t)=>a+(b-a)*t;
+    const loop=()=>{
+      rx=lerp(rx,mx,0.14); ry=lerp(ry,my,0.14);
+      if(ringRef.current){ ringRef.current.style.left=rx+'px'; ringRef.current.style.top=ry+'px'; }
+      raf=requestAnimationFrame(loop);
+    };
+    loop();
+    const onOver = e => {
+      const t = e.target.closest('button,a,.svc-card,.proj-card,.cat-card,.stat-c,.viz-chip,.chip,.flt-btn');
+      if(t && ringRef.current) ringRef.current.classList.add('big');
+      else if(ringRef.current) ringRef.current.classList.remove('big');
+    };
+    const onDown = ()=>{ if(ringRef.current) ringRef.current.classList.add('clicking'); };
+    const onUp   = ()=>{ if(ringRef.current) ringRef.current.classList.remove('clicking'); };
     document.addEventListener('mousemove', onMove);
-    return () => document.removeEventListener('mousemove', onMove);
+    document.addEventListener('mouseover', onOver);
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('mouseup',   onUp);
+    return ()=>{
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseover', onOver);
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('mouseup',   onUp);
+      cancelAnimationFrame(raf);
+    };
   }, []);
   return (
     React.createElement(React.Fragment, null,
@@ -607,12 +1069,11 @@ function Particles() {
 /* ── REVEAL HOOK ── */
 function useReveal() {
   useEffect(() => {
-    const els = document.querySelectorAll('.reveal');
+    const els = document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale');
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
     }, {threshold:0.05, rootMargin:'0px 0px -20px 0px'});
     els.forEach(el => {
-      // If already in viewport, mark immediately
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight && rect.bottom > 0) {
         el.classList.add('in');
@@ -785,9 +1246,13 @@ function Home({setPage}) {
         React.createElement('source', {src:'kitchen1.mp4', type:'video/mp4'})
       ),
       React.createElement('div', {className:'hero-ov'}),
+      React.createElement('div', {className:'hero-corner tl'}),
+      React.createElement('div', {className:'hero-corner tr'}),
+      React.createElement('div', {className:'hero-corner bl'}),
+      React.createElement('div', {className:'hero-corner br'}),
       React.createElement('div', {className:'hero-content'},
         React.createElement('div', {className:'h-tag'}, 'Luxury Interior Design Studio'),
-        React.createElement('h1', {className:'h-title'}, 'Where Space', React.createElement('br'), 'Becomes ', React.createElement('em', null, 'Art')),
+        React.createElement('h1', {className:'h-title'}, 'Where Space', React.createElement('br'), 'Becomes ', React.createElement('em', {className:'shimmer-text'}, 'Art')),
         React.createElement('p', {className:'h-sub'}, 'Modular Kitchens · Wardrobes · Custom Interiors · Glass Partitions'),
         React.createElement('button', {className:'h-cta', onClick:()=>setPage('catalogue')}, 'Explore Our Work →')
       ),
@@ -809,15 +1274,15 @@ function Home({setPage}) {
     React.createElement('section', {className:'sec'},
       React.createElement('div', {className:'about-grid'},
         React.createElement('div', null,
-          React.createElement('div', {className:'sec-lbl reveal'}, 'About Innerspace'),
-          React.createElement('h2', {className:'sec-title reveal'}, 'Crafting Spaces That ', React.createElement('br'), React.createElement('em', null, 'Inspire')),
-          React.createElement('p', {className:'about-p reveal'}, 'Innerspace is a premier interior design and modular furniture studio dedicated to transforming living spaces into expressions of refined luxury. From concept to completion, every project is executed with precision and artistry.'),
-          React.createElement('p', {className:'about-p reveal'}, 'Our team of skilled designers and craftsmen work with the finest materials to bring your vision to life — whether it is a sleek modular kitchen, a bespoke wardrobe, or a complete home transformation.'),
-          React.createElement('div', {className:'reveal', style:{marginTop:'1.8rem'}},
+          React.createElement('div', {className:'sec-lbl reveal-left'}, 'About Innerspace'),
+          React.createElement('h2', {className:'sec-title reveal-left'}, 'Crafting Spaces That ', React.createElement('br'), React.createElement('em', null, 'Inspire')),
+          React.createElement('p', {className:'about-p reveal-left'}, 'Innerspace is a premier interior design and modular furniture studio dedicated to transforming living spaces into expressions of refined luxury. From concept to completion, every project is executed with precision and artistry.'),
+          React.createElement('p', {className:'about-p reveal-left'}, 'Our team of skilled designers and craftsmen work with the finest materials to bring your vision to life — whether it is a sleek modular kitchen, a bespoke wardrobe, or a complete home transformation.'),
+          React.createElement('div', {className:'reveal-left', style:{marginTop:'1.8rem'}},
             React.createElement('button', {className:'btn-outline', onClick:()=>setPage('contact')}, 'Begin Your Project →')
           )
         ),
-        React.createElement('div', {className:'stats-g reveal'},
+        React.createElement('div', {className:'stats-g reveal-right'},
           [['500+','Projects Completed'],['10+','Years Experience'],['50+','Design Experts'],['98%','Client Satisfaction']].map(([n,l]) =>
             React.createElement('div', {key:l, className:'stat-c'},
               React.createElement('div', {className:'stat-n'}, n),
@@ -1583,6 +2048,878 @@ function PriceCalculator({setPage}) {
   );
 }
 
+/* ══════════════════════════════════════════
+   3D VISUALIZER
+══════════════════════════════════════════ */
+
+/* ── FINISH PALETTES ── */
+const FINISHES = {
+  /* ── Whites & Neutrals ── */
+  acrylic_white:    {label:'Pearl White',     hex:'#F0EDE6'},
+  acrylic_offwhite: {label:'Off White',       hex:'#EAE6DC'},
+  acrylic_ivory:    {label:'Warm Ivory',      hex:'#EDE0C8'},
+  matte_linen:      {label:'Linen',           hex:'#D4C9B0'},
+  matte_cashmere:   {label:'Cashmere',        hex:'#C8BCA8'},
+  acrylic_cream:    {label:'Antique Cream',   hex:'#E8DCC8'},
+  /* ── Greys ── */
+  matte_lightgrey:  {label:'Light Grey',      hex:'#C4C0BA'},
+  matte_midgrey:    {label:'Mid Grey',        hex:'#8A8680'},
+  matte_graphite:   {label:'Graphite',        hex:'#3A3A3A'},
+  acrylic_charcoal: {label:'Charcoal',        hex:'#2C2C2C'},
+  matte_black:      {label:'Matte Black',     hex:'#181818'},
+  acrylic_pewter:   {label:'Pewter',          hex:'#6E6B65'},
+  /* ── Blues ── */
+  acrylic_navy:     {label:'Navy Blue',       hex:'#1A2744'},
+  acrylic_steel:    {label:'Steel Blue',      hex:'#3A5068'},
+  acrylic_denim:    {label:'Denim',           hex:'#4A6680'},
+  acrylic_powder:   {label:'Powder Blue',     hex:'#A8BCC8'},
+  acrylic_petrol:   {label:'Petrol',          hex:'#2A4A52'},
+  acrylic_cobalt:   {label:'Cobalt',          hex:'#1E3A6E'},
+  /* ── Greens ── */
+  acrylic_sage:     {label:'Sage Green',      hex:'#7A9B7A'},
+  acrylic_forest:   {label:'Forest Green',    hex:'#2D4A2D'},
+  acrylic_olive:    {label:'Olive',           hex:'#6B6B3A'},
+  acrylic_mint:     {label:'Mint',            hex:'#A8C8B8'},
+  acrylic_eucalypt: {label:'Eucalyptus',      hex:'#5A8070'},
+  acrylic_bottle:   {label:'Bottle Green',    hex:'#1E3C28'},
+  /* ── Reds, Pinks & Purples ── */
+  acrylic_wine:     {label:'Burgundy',        hex:'#6B2737'},
+  acrylic_rose:     {label:'Dusty Rose',      hex:'#C49090'},
+  acrylic_blush:    {label:'Blush',           hex:'#DDB0A8'},
+  acrylic_terracot: {label:'Terracotta',      hex:'#C06848'},
+  acrylic_plum:     {label:'Plum',            hex:'#5A2D50'},
+  acrylic_mauve:    {label:'Mauve',           hex:'#9A7888'},
+  /* ── Yellows & Golds ── */
+  acrylic_mustard:  {label:'Mustard',         hex:'#C8A040'},
+  acrylic_caramel:  {label:'Caramel',         hex:'#C88040'},
+  acrylic_sand:     {label:'Desert Sand',     hex:'#D8C090'},
+  acrylic_champagne:{label:'Champagne',       hex:'#E8D8A8'},
+  /* ── Wood Veneers ── */
+  veneer_oak:       {label:'Oak Veneer',      hex:'#B8895A'},
+  veneer_light_oak: {label:'Light Oak',       hex:'#D4AA70'},
+  veneer_walnut:    {label:'Walnut',          hex:'#5C3A1E'},
+  veneer_dark_walnut:{label:'Dark Walnut',    hex:'#3A2010'},
+  veneer_teak:      {label:'Teak',            hex:'#A0652A'},
+  veneer_maple:     {label:'Maple',           hex:'#E0C080'},
+  veneer_wenge:     {label:'Wenge',           hex:'#2A1A0A'},
+  veneer_ash:       {label:'Ash',             hex:'#C8B890'},
+  veneer_cherry:    {label:'Cherry',          hex:'#883020'},
+  veneer_pine:      {label:'Pine',            hex:'#D8A858'},
+  /* ── Special Finishes ── */
+  gloss_mirror:     {label:'Mirror Gloss',    hex:'#D8D8D8'},
+  gloss_copper:     {label:'Brushed Copper',  hex:'#B87040'},
+  gloss_bronze:     {label:'Dark Bronze',     hex:'#6A4020'},
+  matte_concrete:   {label:'Concrete',        hex:'#9A9890'},
+  fluted_white:     {label:'Fluted White',    hex:'#E8E4DC'},
+  fluted_grey:      {label:'Fluted Grey',     hex:'#A8A4A0'},
+};
+
+const COUNTER_FINISHES = {
+  /* ── Quartz ── */
+  quartz_white:     {label:'White Quartz',    hex:'#E8E4DE'},
+  quartz_cream:     {label:'Cream Quartz',    hex:'#EAE0CC'},
+  quartz_grey:      {label:'Grey Quartz',     hex:'#9A9A9A'},
+  quartz_charcoal:  {label:'Charcoal Quartz', hex:'#484440'},
+  quartz_blush:     {label:'Blush Quartz',    hex:'#D8C0B8'},
+  quartz_midnight:  {label:'Midnight Quartz', hex:'#1A1A2A'},
+  quartz_calacatta: {label:'Calacatta',       hex:'#F0EDE8'},
+  /* ── Granite ── */
+  granite_blk:      {label:'Black Granite',   hex:'#1C1C1C'},
+  granite_kashmir:  {label:'Kashmir Gold',    hex:'#C8A870'},
+  granite_tan_brown:{label:'Tan Brown',       hex:'#7A4030'},
+  granite_absolute: {label:'Absolute Black',  hex:'#080808'},
+  granite_silver:   {label:'Silver Galaxy',   hex:'#888890'},
+  /* ── Marble ── */
+  marble_white:     {label:'White Marble',    hex:'#EEEBE6'},
+  marble_grey:      {label:'Grey Marble',     hex:'#B0ABA3'},
+  marble_nero:      {label:'Nero Marquina',   hex:'#181818'},
+  marble_statuario: {label:'Statuario',       hex:'#F2F0EC'},
+  marble_emperador: {label:'Emperador',       hex:'#5A3828'},
+  marble_verde:     {label:'Verde Alpi',      hex:'#4A6848'},
+  marble_rosa:      {label:'Rosa Portogallo', hex:'#C89090'},
+  /* ── Other Surfaces ── */
+  corian_white:     {label:'Corian White',    hex:'#F0EDEA'},
+  corian_sand:      {label:'Corian Sand',     hex:'#D8C8A8'},
+  compact_lam:      {label:'Compact Lam.',    hex:'#E0D8C8'},
+  ss_brushed:       {label:'Brushed Steel',   hex:'#A0A0A0'},
+  concrete_grey:    {label:'Concrete',        hex:'#9A9890'},
+  wood_butcher:     {label:'Butcher Block',   hex:'#C09050'},
+};
+
+const WALL_COLORS = {
+  /* ── Whites & Creams ── */
+  wall_pure_white:  {label:'Pure White',      hex:'#F8F5F0'},
+  wall_white:       {label:'Linen',           hex:'#F0EBE0'},
+  wall_cream:       {label:'Warm Cream',      hex:'#EDE0C4'},
+  wall_butter:      {label:'Butter',          hex:'#EDE4C0'},
+  wall_antique:     {label:'Antique White',   hex:'#EAE0D0'},
+  /* ── Greys ── */
+  wall_light_grey:  {label:'Pearl Grey',      hex:'#DDD8D0'},
+  wall_grey:        {label:'Stone',           hex:'#C8C0B4'},
+  wall_warm_grey:   {label:'Warm Grey',       hex:'#C0B8A8'},
+  wall_mid_grey:    {label:'Mid Grey',        hex:'#A8A09A'},
+  wall_dark:        {label:'Slate',           hex:'#6A6560'},
+  wall_charcoal:    {label:'Charcoal',        hex:'#404040'},
+  wall_near_black:  {label:'Near Black',      hex:'#1E1E1E'},
+  /* ── Blues ── */
+  wall_powder:      {label:'Powder Blue',     hex:'#C8D8E8'},
+  wall_sky:         {label:'Sky',             hex:'#B0C8D8'},
+  wall_duck_egg:    {label:'Duck Egg',        hex:'#A8C0C0'},
+  wall_navy:        {label:'Deep Navy',       hex:'#1A2440'},
+  wall_petrol:      {label:'Petrol',          hex:'#2A4858'},
+  /* ── Greens ── */
+  wall_sage:        {label:'Sage',            hex:'#A8B89A'},
+  wall_mint:        {label:'Mint',            hex:'#B8D0C0'},
+  wall_olive:       {label:'Olive',           hex:'#8A8858'},
+  wall_forest:      {label:'Forest',          hex:'#3A5040'},
+  wall_bottle:      {label:'Bottle',          hex:'#204030'},
+  /* ── Terracottas & Pinks ── */
+  wall_blush:       {label:'Blush',           hex:'#E8D0C8'},
+  wall_rose:        {label:'Dusty Rose',      hex:'#D8B8B0'},
+  wall_terracotta:  {label:'Terracotta',      hex:'#C07858'},
+  wall_rust:        {label:'Rust',            hex:'#A85030'},
+  wall_clay:        {label:'Clay',            hex:'#C8A888'},
+  /* ── Moody & Bold ── */
+  wall_plum:        {label:'Plum',            hex:'#4A2840'},
+  wall_forest_dark: {label:'Dark Forest',     hex:'#1A2818'},
+  wall_midnight:    {label:'Midnight',        hex:'#1A1828'},
+  wall_teal:        {label:'Deep Teal',       hex:'#1A3838'},
+  wall_bordeaux:    {label:'Bordeaux',        hex:'#4A1820'},
+};
+
+/* ─────────────────────────────────────────
+   THREE.JS SCENE BUILDER HELPERS
+───────────────────────────────────────── */
+function makeBox(w,h,d,color,roughness=0.6,metalness=0){
+  const geo = new THREE.BoxGeometry(w,h,d);
+  const mat = new THREE.MeshStandardMaterial({color:new THREE.Color(color),roughness,metalness});
+  return new THREE.Mesh(geo,mat);
+}
+
+function addEdges(mesh, color='#C9A84C', opacity=0.25){
+  const edges = new THREE.EdgesGeometry(mesh.geometry);
+  const line  = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color,transparent:true,opacity}));
+  mesh.add(line);
+}
+
+/* ─────────────────────────────────────────
+   SCENE BUILDERS  (returns THREE.Group)
+───────────────────────────────────────── */
+
+function buildKitchen(opts){
+  const {layout, shutterColor, counterColor, wallColor, size} = opts;
+  const g   = new THREE.Group();
+  const sc  = shutterColor;
+  const cc  = counterColor;
+
+  /* Cabinet dimensions (Three.js units; 1 unit ≈ 1 ft) */
+  const cabW   = 0.58;   // one cabinet module width
+  const cabGap = 0.02;   // gap between modules
+  const modW   = cabW + cabGap;  // 0.60 per module
+  const cabH   = 0.85;   // lower cabinet height
+  const upperH = 0.65;   // upper cabinet height
+  const depth  = 0.60;   // lower cabinet depth
+  const uDepth = 0.35;   // upper cabinet depth
+
+  /* Convert ft to Three.js scale: 1 ft → 0.30 units */
+  const SCALE  = 0.30;
+
+  /* How many total running feet → split across runs by layout */
+  const totalFt = size;  // e.g. 10 ft
+
+  /* Per-layout run lengths (in ft), distributed from totalFt */
+  let runs = [];  // [{ftLen, x0, z0, rotY}]
+
+  if(layout === 'Straight'){
+    runs = [{ ft: totalFt, x0: 0, z0: -2.8, rotY: 0 }];
+  } else if(layout === 'L-Shape'){
+    const leg1 = Math.round(totalFt * 0.60);
+    const leg2 = totalFt - leg1;
+    runs = [
+      { ft: leg1, x0:  0,   z0: -2.8, rotY: 0 },
+      { ft: leg2, x0: -2.8, z0:  0,   rotY: Math.PI/2 },
+    ];
+  } else if(layout === 'U-Shape'){
+    const back  = Math.round(totalFt * 0.45);
+    const side  = Math.round((totalFt - back) / 2);
+    const side2 = totalFt - back - side;
+    runs = [
+      { ft: back,  x0:  0,                z0: -2.8, rotY: 0 },
+      { ft: side,  x0: -(back*SCALE/2 + side*SCALE/2 - 0.02), z0: -(2.8 - side*SCALE/2), rotY: Math.PI/2 },
+      { ft: side2, x0:  (back*SCALE/2 + side2*SCALE/2 - 0.02), z0: -(2.8 - side2*SCALE/2), rotY: -Math.PI/2 },
+    ];
+  } else if(layout === 'Island'){
+    const wall   = Math.round(totalFt * 0.55);
+    const island = totalFt - wall;
+    runs = [
+      { ft: wall,   x0: 0, z0: -2.8, rotY: 0 },
+      { ft: island, x0: 0, z0:  0.9, rotY: 0, isIsland: true },
+    ];
+  } else if(layout === 'Parallel'){
+    const run1 = Math.round(totalFt * 0.55);
+    const run2 = totalFt - run1;
+    runs = [
+      { ft: run1, x0: 0, z0: -2.8, rotY: 0 },
+      { ft: run2, x0: 0, z0:  0.7, rotY: Math.PI },
+    ];
+  }
+
+  /* Room walls — scale with size */
+  const roomW = Math.max(6, totalFt * SCALE + 1.4);
+  const roomD = layout === 'U-Shape' || layout === 'Parallel' ? 5.5 : 4.5;
+
+  const floor = makeBox(roomW+2, 0.05, roomD+1, '#1A1A1A', 0.9);
+  floor.position.set(0, -0.025, 0);
+  g.add(floor);
+
+  const bwall = makeBox(roomW+2, 3.5, 0.08, wallColor, 0.95);
+  bwall.position.set(0, 1.75, -(roomD/2 + 0.5));
+  g.add(bwall);
+
+  if(layout === 'L-Shape' || layout === 'U-Shape'){
+    const swall = makeBox(0.08, 3.5, roomD+1, wallColor, 0.95);
+    swall.position.set(-(roomW/2 + 0.5), 1.75, 0);
+    g.add(swall);
+  }
+  if(layout === 'U-Shape' || layout === 'Parallel'){
+    const rwall = makeBox(0.08, 3.5, roomD+1, wallColor, 0.95);
+    rwall.position.set((roomW/2 + 0.5), 1.75, 0);
+    g.add(rwall);
+  }
+
+  /* Draw a single run of cabinets */
+  function drawRun(ftLen, x0, z0, rotY, isIsland){
+    const run     = new THREE.Group();
+    const units3D = ftLen * SCALE;   // length in Three.js units
+    const numCabs = Math.max(1, Math.round(units3D / modW));
+    const totalW  = numCabs * modW;
+
+    for(let i = 0; i < numCabs; i++){
+      const cx = i * modW - totalW/2 + modW/2;
+
+      /* Lower cabinet */
+      const lc = makeBox(cabW, cabH, depth - cabGap, sc, 0.4);
+      lc.position.set(cx, cabH/2, 0);
+      addEdges(lc, '#C9A84C', 0.15);
+      run.add(lc);
+
+      /* Countertop slab */
+      const ct = makeBox(modW, 0.04, depth + 0.04, cc, 0.3, 0.1);
+      ct.position.set(cx, cabH + 0.02, 0);
+      run.add(ct);
+
+      /* Handle bar */
+      const hnd = makeBox(cabW * 0.68, 0.022, 0.022, '#C9A84C', 0.2, 0.85);
+      hnd.position.set(cx, cabH - 0.14, -depth/2 + 0.01);
+      run.add(hnd);
+
+      /* Upper cabinet (skip for island) */
+      if(!isIsland){
+        const uc = makeBox(cabW, upperH, uDepth - cabGap, sc, 0.4);
+        uc.position.set(cx, cabH + 0.68 + upperH/2, -(depth - uDepth)/2);
+        addEdges(uc, '#C9A84C', 0.12);
+        run.add(uc);
+
+        /* Upper handle */
+        const uhnd = makeBox(cabW * 0.68, 0.022, 0.022, '#C9A84C', 0.2, 0.85);
+        uhnd.position.set(cx, cabH + 0.68 + 0.1, -(depth - uDepth)/2 - uDepth/2 + 0.01);
+        run.add(uhnd);
+      }
+    }
+
+    /* Toe kick strip */
+    const tk = makeBox(totalW, 0.10, depth, '#111111', 0.9);
+    tk.position.set(0, 0.05, 0);
+    run.add(tk);
+
+    run.position.set(x0, 0, z0);
+    run.rotation.y = rotY;
+    return run;
+  }
+
+  runs.forEach(r => g.add(drawRun(r.ft, r.x0, r.z0, r.rotY, r.isIsland)));
+
+  /* Chimney — positioned above back wall centre */
+  const chim = makeBox(0.70, 0.9, 0.4, '#888888', 0.5, 0.3);
+  chim.position.set(0, 2.3, -(roomD/2 + 0.48));
+  g.add(chim);
+  const chimTop = makeBox(0.82, 0.08, 0.46, '#555555', 0.4, 0.5);
+  chimTop.position.set(0, 2.76, -(roomD/2 + 0.48));
+  g.add(chimTop);
+
+  return g;
+}
+
+function buildWardrobe(opts){
+  const {doorType,finish,width,height,wallColor} = opts;
+  const g = new THREE.Group();
+  const w = 0.5+width*0.18; const h = 0.5+height*0.18;
+  const d = 0.6;
+
+  /* Floor */
+  const floor = makeBox(10,0.05,8,'#1A1A1A',0.9);
+  floor.position.set(0,-0.025,0); g.add(floor);
+  const bwall = makeBox(10,4,0.1,wallColor,0.9);
+  bwall.position.set(0,2,-4); g.add(bwall);
+  const swall = makeBox(0.1,4,8,wallColor,0.9);
+  swall.position.set(-5,2,0); g.add(swall);
+
+  /* Carcass */
+  const carcass = makeBox(w,h,d,'#D0C8BC',0.7);
+  carcass.position.set(0,h/2,0);
+  g.add(carcass);
+
+  /* Shelves inside */
+  for(let i=1;i<5;i++){
+    const shelf = makeBox(w-0.04,0.022,d-0.06,'#C5BDB1',0.6);
+    shelf.position.set(0, i*(h/5), 0);
+    g.add(shelf);
+  }
+
+  /* Doors */
+  const panels = doorType==='Sliding'?2 : doorType==='Hinged'?3 : doorType==='Pocket'?2 : 4;
+  for(let i=0;i<panels;i++){
+    const pw = (w-0.04)/panels;
+    const door = makeBox(pw-0.015, h-0.04, 0.022, finish, 0.35);
+    door.position.set(-w/2 + pw/2 + i*pw + 0.02, h/2, d/2+0.013);
+    addEdges(door,'#C9A84C',0.18);
+    /* Handle */
+    const hnd = makeBox(0.015,0.18,0.025,'#C9A84C',0.15,0.85);
+    const hx = doorType==='Hinged' ? (i%2===0 ? pw/2-0.04 : -pw/2+0.04) : 0;
+    hnd.position.set(-w/2 + pw/2 + i*pw + 0.02 + hx, h/2, d/2+0.038);
+    g.add(door); g.add(hnd);
+  }
+
+  /* Top panel */
+  const top = makeBox(w,0.025,d,'#C5BDB1',0.6);
+  top.position.set(0,h+0.012,0); g.add(top);
+
+  /* LED strip */
+  const led = makeBox(w-0.1,0.012,0.04,'#FFD97A',0.1,0.0);
+  led.position.set(0,h+0.005,d/2-0.02); g.add(led);
+
+  return g;
+}
+
+function buildVanity(opts){
+  const {config,finish,wallColor} = opts;
+  const g = new THREE.Group();
+  const isDouble = config==='Double Sink';
+  const w = isDouble?1.5:0.85; const h=0.48; const d=0.5;
+
+  /* Floor + Walls */
+  const floor = makeBox(8,0.05,6,'#E8E4DC',0.85);
+  floor.position.set(0,-0.025,0); g.add(floor);
+  const bwall = makeBox(8,3.5,0.1,wallColor,0.85);
+  bwall.position.set(0,1.75,-3); g.add(bwall);
+
+  /* Cabinet body */
+  const cab = config==='Floating Vanity'||config==='Freestanding'
+    ? makeBox(w,h,d,finish,0.35) : makeBox(w,h,d,finish,0.35);
+  const yPos = config==='Floating Vanity' ? 0.35 : h/2;
+  cab.position.set(0,yPos,0);
+  addEdges(cab,'#C9A84C',0.18);
+  g.add(cab);
+
+  /* Doors */
+  const doors = isDouble?2:1;
+  for(let i=0;i<doors;i++){
+    const dw = (w-0.03)/doors;
+    const dr = makeBox(dw-0.01,h-0.06,0.02,finish,0.35);
+    dr.position.set(-w/2+dw/2+i*dw+0.015,yPos,d/2+0.012);
+    addEdges(dr,'#C9A84C',0.12);
+    g.add(dr);
+    const hnd = makeBox(dw*0.5,0.015,0.02,'#C9A84C',0.1,0.9);
+    hnd.position.set(-w/2+dw/2+i*dw+0.015,yPos,d/2+0.025);
+    g.add(hnd);
+  }
+
+  /* Countertop */
+  const ct = makeBox(w+0.04,0.025,d+0.04,'#DEDAD4',0.25,0.1);
+  ct.position.set(0,yPos+h/2+0.012,0); g.add(ct);
+
+  /* Basin(s) */
+  for(let i=0;i<doors;i++){
+    const bw = isDouble?(w-0.05)/2:w-0.15;
+    const basin = makeBox(bw,0.05,d*0.7,'#F5F2EE',0.15,0.05);
+    basin.position.set(isDouble?(-w/2+(i+0.5)*(w/doors)):0, yPos+h/2+0.03, 0.02);
+    g.add(basin);
+    /* Tap */
+    const tap = makeBox(0.02,0.18,0.02,'#C0C0C0',0.1,0.85);
+    tap.position.set(isDouble?(-w/2+(i+0.5)*(w/doors)):0, yPos+h/2+0.12, -0.08);
+    g.add(tap);
+  }
+
+  /* Mirror */
+  const mir = makeBox(w+0.1,0.75,0.025,'#D0D8D8',0.05,0.1);
+  mir.position.set(0,yPos+h/2+0.5,-0.01);
+  /* LED strip around mirror */
+  const mirLed = makeBox(w+0.12,0.012,0.012,'#FFE8A0',0.05,0);
+  mirLed.position.set(0,yPos+h/2+0.885,0.01);
+  g.add(mir); g.add(mirLed);
+
+  return g;
+}
+
+function buildTVUnit(opts){
+  const {style,finish,width,wallColor} = opts;
+  const g = new THREE.Group();
+  const w = 1.8+width*0.22; const h = 0.55; const d=0.42;
+
+  /* Floor + Wall */
+  const floor = makeBox(12,0.05,8,'#1A1A1A',0.9);
+  floor.position.set(0,-0.025,0); g.add(floor);
+  const bwall = makeBox(12,4,0.1,wallColor,0.9);
+  bwall.position.set(0,2,-4); g.add(bwall);
+
+  const isFullWall = style==='Full Wall';
+  const totalW = isFullWall ? w+2.5 : w;
+
+  /* Base unit */
+  const base = makeBox(w, h, d, finish, 0.35);
+  const baseY = style==='Floating Panel'?0.55:h/2;
+  base.position.set(0, baseY, 0);
+  addEdges(base,'#C9A84C',0.15);
+  g.add(base);
+
+  /* Cabinet doors on base */
+  const segments = Math.floor(w/0.55);
+  for(let i=0;i<segments;i++){
+    const sw = (w-0.03)/segments;
+    const dr = makeBox(sw-0.01,h-0.06,0.015,finish,0.35);
+    dr.position.set(-w/2+sw/2+i*sw+0.015, baseY, d/2+0.01);
+    addEdges(dr,'#C9A84C',0.1);
+    g.add(dr);
+    const hnd = makeBox(sw*0.45,0.012,0.015,'#C9A84C',0.1,0.9);
+    hnd.position.set(-w/2+sw/2+i*sw+0.015, baseY, d/2+0.022);
+    g.add(hnd);
+  }
+
+  /* Top panel / back panel for full wall */
+  if(isFullWall){
+    const backPanel = makeBox(totalW, 2.2, 0.06, finish, 0.45);
+    backPanel.position.set(0, baseY+h/2+1.1, -d/2+0.03);
+    addEdges(backPanel,'#C9A84C',0.1);
+    g.add(backPanel);
+    /* Floating shelves */
+    for(let i=0;i<3;i++){
+      const shelf = makeBox(0.55,0.025,d*0.7,finish,0.35);
+      shelf.position.set(-totalW/2+0.32+i*(totalW/3), baseY+h/2+0.45+i*0.55, -d/2+0.18);
+      g.add(shelf);
+    }
+  }
+
+  /* TV screen */
+  const tvW = Math.min(w*0.75,1.6);
+  const tv = makeBox(tvW, tvW*0.57, 0.04,'#0A0A0A',0.9);
+  tv.position.set(0, baseY+h/2+tvW*0.285+0.06, -d/2+0.08);
+  g.add(tv);
+  /* Screen glow */
+  const screen = makeBox(tvW-0.04,tvW*0.57-0.04,0.01,'#1A2535',0.1,0);
+  screen.position.set(0, baseY+h/2+tvW*0.285+0.06, -d/2+0.11);
+  g.add(screen);
+  /* TV stand / bezel */
+  const bezel = makeBox(tvW+0.04,tvW*0.57+0.04,0.03,'#1A1A1A',0.8,0.3);
+  bezel.position.set(0, baseY+h/2+tvW*0.285+0.06, -d/2+0.07);
+  g.add(bezel);
+
+  /* LED profile strip */
+  const led = makeBox(w,0.008,0.015,'#FFD97A',0.05,0);
+  led.position.set(0, baseY+h/2+0.006, d/2-0.01);
+  g.add(led);
+
+  return g;
+}
+
+/* ─────────────────────────────────────────
+   THREE.JS CANVAS COMPONENT
+───────────────────────────────────────── */
+function ThreeCanvas({tab, opts}) {
+  const mountRef   = useRef(null);
+  const rendererRef= useRef(null);
+  const sceneRef   = useRef(null);
+  const groupRef   = useRef(null);
+  const animRef    = useRef(null);
+
+  /* Init renderer/camera/lights once */
+  useEffect(() => {
+    const el = mountRef.current;
+    if (!el) return;
+
+    const W = el.clientWidth  || 800;
+    const H = el.clientHeight || 520;
+
+    const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer.setSize(W,H);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    el.appendChild(renderer.domElement);
+
+    const scene  = new THREE.Scene();
+    scene.background = new THREE.Color('#0C0C0C');
+    scene.fog = new THREE.Fog('#0C0C0C',12,22);
+
+    const camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 50);
+    camera.position.set(4,3,5);
+    camera.lookAt(0,0.8,0);
+
+    const ambient = new THREE.AmbientLight('#FFF8EE', 0.55);
+    scene.add(ambient);
+    const key = new THREE.DirectionalLight('#FFF8EE', 1.1);
+    key.position.set(5,6,4); key.castShadow=true;
+    key.shadow.mapSize.set(1024,1024);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight('#C9A84C', 0.28);
+    fill.position.set(-4,2,-2); scene.add(fill);
+    const rim  = new THREE.DirectionalLight('#E0D0B0', 0.18);
+    rim.position.set(0,4,-5);  scene.add(rim);
+
+    const grid = new THREE.GridHelper(14,28,'#C9A84C','#1A1A1A');
+    grid.material.opacity=0.18; grid.material.transparent=true;
+    scene.add(grid);
+
+    rendererRef.current = renderer;
+    sceneRef.current    = scene;
+    sceneRef.current._camera = camera;
+
+    /* Orbit controls */
+    let isDragging=false, prevX=0, prevY=0;
+    let theta=0.55, phi=0.82, radius=7;
+    const target = new THREE.Vector3(0,0.8,0);
+    function updateCam(){
+      camera.position.x = target.x + radius*Math.sin(phi)*Math.sin(theta);
+      camera.position.y = target.y + radius*Math.cos(phi);
+      camera.position.z = target.z + radius*Math.sin(phi)*Math.cos(theta);
+      camera.lookAt(target);
+    }
+    updateCam();
+
+    const onDown = e => { isDragging=true; prevX=e.clientX||(e.touches?.[0]?.clientX||0); prevY=e.clientY||(e.touches?.[0]?.clientY||0); };
+    const onUp   = () => { isDragging=false; };
+    const onMove = e => {
+      if(!isDragging) return;
+      const cx=e.clientX||(e.touches?.[0]?.clientX||0);
+      const cy=e.clientY||(e.touches?.[0]?.clientY||0);
+      theta -= (cx-prevX)*0.008;
+      phi    = Math.max(0.15,Math.min(Math.PI*0.48,phi+(cy-prevY)*0.008));
+      prevX=cx; prevY=cy; updateCam();
+    };
+    const onWheel = e => { radius=Math.max(2.5,Math.min(12,radius+e.deltaY*0.008)); updateCam(); };
+
+    renderer.domElement.addEventListener('mousedown',  onDown);
+    renderer.domElement.addEventListener('touchstart', onDown, {passive:true});
+    window.addEventListener('mouseup',   onUp);
+    window.addEventListener('touchend',  onUp);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:true});
+    renderer.domElement.addEventListener('wheel', onWheel, {passive:true});
+
+    const onResize = () => {
+      const W2=el.clientWidth, H2=el.clientHeight;
+      renderer.setSize(W2,H2);
+      camera.aspect=W2/H2; camera.updateProjectionMatrix();
+    };
+    window.addEventListener('resize', onResize);
+
+    let animId;
+    const animate = () => {
+      animId=requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    };
+    animate(); animRef.current=animId;
+
+    return () => {
+      cancelAnimationFrame(animId);
+      renderer.domElement.removeEventListener('mousedown',  onDown);
+      renderer.domElement.removeEventListener('touchstart', onDown);
+      window.removeEventListener('mouseup',   onUp);
+      window.removeEventListener('touchend',  onUp);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchmove', onMove);
+      renderer.domElement.removeEventListener('wheel', onWheel);
+      window.removeEventListener('resize', onResize);
+      renderer.dispose();
+      if(el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
+    };
+  }, []); // mount once only
+
+  /* Rebuild scene group whenever tab or opts change */
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    /* Remove old group */
+    if (groupRef.current) {
+      scene.remove(groupRef.current);
+      groupRef.current = null;
+    }
+
+    /* Build new group */
+    let newGroup;
+    if(tab==='kitchen')  newGroup = buildKitchen(opts);
+    if(tab==='wardrobe') newGroup = buildWardrobe(opts);
+    if(tab==='vanity')   newGroup = buildVanity(opts);
+    if(tab==='tvunit')   newGroup = buildTVUnit(opts);
+
+    if(newGroup){
+      scene.add(newGroup);
+      groupRef.current = newGroup;
+    }
+  }, [tab, opts]); // re-runs on every opts change
+
+  return React.createElement('div', {
+    ref:mountRef,
+    className:'viz-canvas-wrap',
+    style:{width:'100%',height:'100%',minHeight:'480px'}
+  });
+}
+
+/* ─────────────────────────────────────────
+   KITCHEN CONTROLS
+───────────────────────────────────────── */
+function KitchenControls({opts, setOpts}){
+  const toggle = (key,val,arr) => setOpts(o=>({...o,[key]:arr.includes(val)?arr.filter(x=>x!==val):[...arr,val]}));
+  return React.createElement('div', {className:'viz-ctrl-body'},
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Layout'),
+      React.createElement('div',{className:'viz-chips'},
+        ['Straight','L-Shape','U-Shape','Island','Parallel'].map(l=>
+          React.createElement('button',{key:l,className:'viz-chip'+(opts.layout===l?' on':''),onClick:()=>setOpts(o=>({...o,layout:l}))},l)
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Cabinet Size (ft)'),
+      React.createElement('div',{className:'viz-slider-row'},
+        React.createElement('input',{type:'range',min:6,max:20,value:opts.size,onChange:e=>setOpts(o=>({...o,size:+e.target.value})),style:{flex:1}}),
+        React.createElement('span',{className:'viz-slider-val'},opts.size)
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Shutter Finish'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(FINISHES).map(([k,v])=>
+          React.createElement('div',{key:k,className:'viz-swatch'+(opts.shutterColor===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,shutterColor:v.hex})),title:v.label})
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Countertop'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(COUNTER_FINISHES).map(([k,v])=>
+          React.createElement('div',{key:k,className:'viz-swatch'+(opts.counterColor===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,counterColor:v.hex})),title:v.label})
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Wall Color'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(WALL_COLORS).map(([k,v])=>
+          React.createElement('div',{key:k,className:'viz-swatch'+(opts.wallColor===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,wallColor:v.hex})),title:v.label})
+        )
+      )
+    )
+  );
+}
+
+/* ─────────────────────────────────────────
+   WARDROBE CONTROLS
+───────────────────────────────────────── */
+function WardrobeControls({opts,setOpts}){
+  return React.createElement('div',{className:'viz-ctrl-body'},
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Door Type'),
+      React.createElement('div',{className:'viz-chips'},
+        ['Sliding','Hinged','Walk-in Open','Pocket'].map(t=>
+          React.createElement('button',{key:t,className:'viz-chip'+(opts.doorType===t?' on':''),onClick:()=>setOpts(o=>({...o,doorType:t}))},t)
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Width (ft)'),
+      React.createElement('div',{className:'viz-slider-row'},
+        React.createElement('input',{type:'range',min:3,max:16,value:opts.width,onChange:e=>setOpts(o=>({...o,width:+e.target.value})),style:{flex:1}}),
+        React.createElement('span',{className:'viz-slider-val'},opts.width)
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Height (ft)'),
+      React.createElement('div',{className:'viz-slider-row'},
+        React.createElement('input',{type:'range',min:6,max:12,value:opts.height,onChange:e=>setOpts(o=>({...o,height:+e.target.value})),style:{flex:1}}),
+        React.createElement('span',{className:'viz-slider-val'},opts.height)
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Shutter Finish'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(FINISHES).map(([k,v])=>
+          React.createElement('div',{key:k,className:'viz-swatch'+(opts.finish===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,finish:v.hex})),title:v.label})
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Wall Color'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(WALL_COLORS).map(([k,v])=>
+          React.createElement('div',{key:k,className:'viz-swatch'+(opts.wallColor===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,wallColor:v.hex})),title:v.label})
+        )
+      )
+    )
+  );
+}
+
+/* ─────────────────────────────────────────
+   VANITY CONTROLS
+───────────────────────────────────────── */
+function VanityControls({opts,setOpts}){
+  return React.createElement('div',{className:'viz-ctrl-body'},
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Configuration'),
+      React.createElement('div',{className:'viz-chips'},
+        ['Single Sink','Double Sink','Floating Vanity','Freestanding'].map(t=>
+          React.createElement('button',{key:t,className:'viz-chip'+(opts.config===t?' on':''),onClick:()=>setOpts(o=>({...o,config:t}))},t)
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Cabinet Finish'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(FINISHES).map(([k,v])=>
+            React.createElement('div',{key:k,className:'viz-swatch'+(opts.finish===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,finish:v.hex})),title:v.label}),
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Wall Color'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(WALL_COLORS).map(([k,v])=>
+            React.createElement('div',{key:k,className:'viz-swatch'+(opts.wallColor===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,wallColor:v.hex})),title:v.label}),
+        )
+      )
+    )
+  );
+}
+
+/* ─────────────────────────────────────────
+   TV UNIT CONTROLS
+───────────────────────────────────────── */
+function TVUnitControls({opts,setOpts}){
+  return React.createElement('div',{className:'viz-ctrl-body'},
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Style'),
+      React.createElement('div',{className:'viz-chips'},
+        ['Full Wall','Floating Panel','L-Shape Unit','Entertainment Hub'].map(t=>
+          React.createElement('button',{key:t,className:'viz-chip'+(opts.style===t?' on':''),onClick:()=>setOpts(o=>({...o,style:t}))},t)
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Width (ft)'),
+      React.createElement('div',{className:'viz-slider-row'},
+        React.createElement('input',{type:'range',min:4,max:18,value:opts.width,onChange:e=>setOpts(o=>({...o,width:+e.target.value})),style:{flex:1}}),
+        React.createElement('span',{className:'viz-slider-val'},opts.width)
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Finish'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(FINISHES).map(([k,v])=>
+            React.createElement('div',{key:k,className:'viz-swatch'+(opts.finish===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,finish:v.hex})),title:v.label}),
+        )
+      )
+    ),
+    React.createElement('div',{className:'viz-group'},
+      React.createElement('div',{className:'viz-group-lbl'},'Wall Color'),
+      React.createElement('div',{className:'viz-swatch-row'},
+        Object.entries(WALL_COLORS).map(([k,v])=>
+            React.createElement('div',{key:k,className:'viz-swatch'+(opts.wallColor===v.hex?' on':''),style:{background:v.hex},onClick:()=>setOpts(o=>({...o,wallColor:v.hex})),title:v.label}),
+        )
+      )
+    )
+  );
+}
+
+/* ─────────────────────────────────────────
+   MAIN VISUALIZER PAGE
+───────────────────────────────────────── */
+function Visualizer({setPage}){
+  const [tab, setTab] = useState('kitchen');
+
+  const [kOpts, setKOpts] = useState({layout:'L-Shape', shutterColor:FINISHES.acrylic_white.hex, counterColor:COUNTER_FINISHES.quartz_white.hex, wallColor:WALL_COLORS.wall_white.hex, size:10});
+  const [wOpts, setWOpts] = useState({doorType:'Sliding', finish:FINISHES.acrylic_white.hex, wallColor:WALL_COLORS.wall_white.hex, width:8, height:8});
+  const [vOpts, setVOpts] = useState({config:'Single Sink', finish:FINISHES.acrylic_white.hex, wallColor:WALL_COLORS.wall_white.hex});
+  const [tOpts, setTOpts] = useState({style:'Full Wall', finish:FINISHES.matte_graphite.hex, wallColor:WALL_COLORS.wall_dark.hex, width:10});
+
+  const currentOpts = {kitchen:kOpts, wardrobe:wOpts, vanity:vOpts, tvunit:tOpts}[tab];
+
+  const TABS = [
+    {id:'kitchen',  label:'Modular Kitchen'},
+    {id:'wardrobe', label:'Wardrobe'},
+    {id:'vanity',   label:'Vanity'},
+    {id:'tvunit',   label:'TV Unit'},
+  ];
+
+  const ctrlMap = {
+    kitchen:  React.createElement(KitchenControls, {opts:kOpts, setOpts:setKOpts}),
+    wardrobe: React.createElement(WardrobeControls,{opts:wOpts, setOpts:setWOpts}),
+    vanity:   React.createElement(VanityControls,  {opts:vOpts, setOpts:setVOpts}),
+    tvunit:   React.createElement(TVUnitControls,  {opts:tOpts, setOpts:setTOpts}),
+  };
+
+  const waMsg = () => {
+    const names = {kitchen:'Modular Kitchen',wardrobe:'Wardrobe',vanity:'Vanity',tvunit:'TV Unit'};
+    return `https://wa.me/919306109466?text=Hi%20Innerspace!%20I%20used%20the%203D%20Visualizer%20to%20design%20my%20${encodeURIComponent(names[tab])}.%20Can%20you%20help%20me%20get%20started?`;
+  };
+
+  const defaultMap = {
+    kitchen:  ()=>setKOpts({layout:'L-Shape',shutterColor:FINISHES.acrylic_white.hex,counterColor:COUNTER_FINISHES.quartz_white.hex,wallColor:WALL_COLORS.wall_white.hex,size:10}),
+    wardrobe: ()=>setWOpts({doorType:'Sliding',finish:FINISHES.acrylic_white.hex,wallColor:WALL_COLORS.wall_white.hex,width:8,height:8}),
+    vanity:   ()=>setVOpts({config:'Single Sink',finish:FINISHES.acrylic_white.hex,wallColor:WALL_COLORS.wall_white.hex}),
+    tvunit:   ()=>setTOpts({style:'Full Wall',finish:FINISHES.matte_graphite.hex,wallColor:WALL_COLORS.wall_dark.hex,width:10}),
+  };
+
+  return React.createElement('div', {className:'viz-page page'},
+    React.createElement(BackButton, {setPage}),
+    React.createElement('div', {className:'page-hdr'},
+      React.createElement('div', {className:'sec-lbl'}, '3D Room Visualizer'),
+      React.createElement('h1', null, 'Design Your ', React.createElement('em',null,'Space'))
+    ),
+    /* Tabs */
+    React.createElement('div', {className:'viz-tabs'},
+      TABS.map(t=>React.createElement('button',{key:t.id,className:'viz-tab'+(tab===t.id?' on':''),onClick:()=>setTab(t.id)},t.label))
+    ),
+    /* Canvas + Controls */
+    React.createElement('div', {className:'viz-layout'},
+      /* 3D Canvas */
+      React.createElement('div', {style:{position:'relative',background:'#0C0C0C',minHeight:'480px'}},
+        React.createElement(ThreeCanvas, {tab, opts:currentOpts}),
+        React.createElement('div', {className:'viz-hint'}, '🖱 Drag to orbit · Scroll to zoom')
+      ),
+      /* Controls panel */
+      React.createElement('div', {className:'viz-controls'},
+        React.createElement('div', {className:'viz-ctrl-head'},
+          React.createElement('div', {className:'viz-ctrl-head-lbl'}, 'Customise'),
+          React.createElement('div', {className:'viz-ctrl-head-title'}, {kitchen:'Modular Kitchen',wardrobe:'Wardrobe',vanity:'Vanity',tvunit:'TV Unit'}[tab])
+        ),
+        ctrlMap[tab],
+        React.createElement('div', {className:'viz-ctrl-footer'},
+          React.createElement('a', {
+            className:'btn-gold',
+            href:waMsg(), target:'_blank', rel:'noreferrer',
+            style:{justifyContent:'center',textDecoration:'none',display:'flex',alignItems:'center',gap:'.5rem',fontSize:'.55rem'}
+          }, 'Get This Design on WhatsApp →'),
+          React.createElement('button',{className:'btn-outline',onClick:()=>setPage('contact'),style:{justifyContent:'center',fontSize:'.55rem'}},'Book Consultation'),
+          React.createElement('button',{className:'viz-reset',onClick:defaultMap[tab]},'↺ Reset to Default')
+        )
+      )
+    ),
+    React.createElement(Footer,{setPage})
+  );
+}
+
 /* ── APP ── */
 function App() {
   const [page, setPage]           = useState('home');
@@ -1618,6 +2955,7 @@ function App() {
       (page==='home' || page==='faq') && React.createElement(Home,           {setPage:go}),
       page==='catalogue'  && React.createElement(Catalogue,      {setPage:go}),
       page==='calculator' && React.createElement(PriceCalculator,{setPage:go}),
+      page==='visualizer' && React.createElement(Visualizer,     {setPage:go}),
       page==='contact'    && React.createElement(Contact,         {setPage:go})
     ),
     React.createElement('a', {className:'wa-fab', href:WA, target:'_blank', rel:'noreferrer', title:'WhatsApp Us'},
@@ -1631,6 +2969,167 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('app'));
 root.render(React.createElement(App));
+</script>
+
+<!-- ── AMBIENT 3D + SCROLL EFFECTS (plain JS, runs after React mounts) ── -->
+<script>
+(function(){
+  /* ── SCROLL PROGRESS BAR ── */
+  const bar = document.getElementById('scroll-bar');
+  function updateBar(){
+    const s = document.documentElement.scrollTop||document.body.scrollTop;
+    const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    if(bar) bar.style.width = (h > 0 ? (s/h)*100 : 0) + '%';
+  }
+  window.addEventListener('scroll', updateBar, {passive:true});
+
+  /* ── AMBIENT THREE.JS FLOATING GEOMETRY ── */
+  const canvas = document.getElementById('ambient-canvas');
+  if(!canvas || typeof THREE === 'undefined') return;
+
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+  renderer.setClearColor(0x000000,0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.z = 18;
+
+  function resize(){
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize, {passive:true});
+
+  /* Gold wireframe material */
+  const wireMat = new THREE.MeshBasicMaterial({color:0xC9A84C, wireframe:true, transparent:true, opacity:0.12});
+  const wireMat2 = new THREE.MeshBasicMaterial({color:0xE8C96A, wireframe:true, transparent:true, opacity:0.07});
+
+  /* Create floating shapes */
+  const shapes = [];
+  const geos = [
+    new THREE.OctahedronGeometry(1.1, 0),
+    new THREE.TetrahedronGeometry(0.9, 0),
+    new THREE.IcosahedronGeometry(0.85, 0),
+    new THREE.OctahedronGeometry(0.65, 0),
+    new THREE.TetrahedronGeometry(1.2, 0),
+    new THREE.IcosahedronGeometry(0.5, 0),
+    new THREE.OctahedronGeometry(1.4, 0),
+    new THREE.TetrahedronGeometry(0.75, 0),
+    new THREE.IcosahedronGeometry(1.0, 0),
+    new THREE.OctahedronGeometry(0.55, 0),
+    new THREE.TetrahedronGeometry(0.9, 0),
+    new THREE.IcosahedronGeometry(0.7, 0),
+  ];
+
+  geos.forEach((geo, i) => {
+    const mat = i % 3 === 0 ? wireMat.clone() : wireMat2.clone();
+    mat.opacity = 0.04 + Math.random()*0.1;
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(
+      (Math.random()-0.5)*32,
+      (Math.random()-0.5)*22,
+      (Math.random()-0.5)*12 - 4
+    );
+    mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    mesh.userData = {
+      rx: (Math.random()-0.5)*0.004,
+      ry: (Math.random()-0.5)*0.005,
+      rz: (Math.random()-0.5)*0.003,
+      floatSpeed: 0.0004 + Math.random()*0.0006,
+      floatAmp:   0.4 + Math.random()*0.8,
+      floatOffset:Math.random()*Math.PI*2,
+      baseY: mesh.position.y,
+    };
+    scene.add(mesh);
+    shapes.push(mesh);
+  });
+
+  /* Ambient light */
+  scene.add(new THREE.AmbientLight(0xC9A84C, 0.3));
+
+  /* Mouse parallax */
+  let mouseX=0, mouseY=0, targetX=0, targetY=0;
+  document.addEventListener('mousemove', e=>{
+    mouseX = (e.clientX/window.innerWidth - 0.5)*2;
+    mouseY = (e.clientY/window.innerHeight - 0.5)*2;
+  },{passive:true});
+
+  /* Scroll parallax */
+  let scrollY=0;
+  window.addEventListener('scroll',()=>{ scrollY = window.scrollY; },{passive:true});
+
+  let t=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    t += 0.016;
+
+    /* Lerp mouse */
+    targetX += (mouseX - targetX)*0.03;
+    targetY += (mouseY - targetY)*0.03;
+
+    /* Camera subtle drift */
+    camera.position.x = targetX * 1.2;
+    camera.position.y = targetY * 0.8 - scrollY * 0.002;
+    camera.lookAt(0, -scrollY*0.001, 0);
+
+    shapes.forEach(m=>{
+      const u = m.userData;
+      m.rotation.x += u.rx;
+      m.rotation.y += u.ry;
+      m.rotation.z += u.rz;
+      m.position.y = u.baseY + Math.sin(t*u.floatSpeed*60 + u.floatOffset)*u.floatAmp;
+      /* Parallax depth on scroll */
+      m.position.z += ((-scrollY*0.004 + m.userData.baseZ||0) - m.position.z)*0.02;
+    });
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  /* Store baseZ */
+  shapes.forEach(m=>{ m.userData.baseZ = m.position.z; });
+
+  /* ── COUNTER ANIMATION ── */
+  function animateCounters(){
+    document.querySelectorAll('.stat-n').forEach(el=>{
+      const text = el.textContent;
+      const num = parseInt(text.replace(/\D/g,''));
+      if(!num || el.dataset.animated) return;
+      const suffix = text.replace(/[\d]/g,'');
+      let start=0, duration=1800, startTime=null;
+      const ease = t => 1 - Math.pow(1-t, 3);
+      function step(ts){
+        if(!startTime) startTime=ts;
+        const progress = Math.min((ts-startTime)/duration,1);
+        el.textContent = Math.round(ease(progress)*num) + suffix;
+        if(progress<1) requestAnimationFrame(step);
+        else el.dataset.animated='1';
+      }
+      requestAnimationFrame(step);
+    });
+  }
+  const statsObs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ animateCounters(); statsObs.disconnect(); } });
+  },{threshold:0.3});
+  const statsEl = document.querySelector('.stats-g');
+  if(statsEl) statsObs.observe(statsEl);
+
+  /* ── PARALLAX ON SECTIONS ── */
+  function onScroll(){
+    const sy = window.scrollY;
+    document.querySelectorAll('.parallax-slow').forEach(el=>{
+      el.style.transform = `translateY(${sy*0.06}px)`;
+    });
+    document.querySelectorAll('.parallax-mid').forEach(el=>{
+      el.style.transform = `translateY(${sy*0.03}px)`;
+    });
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+
+})();
 </script>
 </body>
 </html>
